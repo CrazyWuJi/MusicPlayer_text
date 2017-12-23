@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="5dp">
+
+
+    <ImageView
+        android:id="@+id/musicPic"
+        android:layout_width="66dp"
+        android:layout_height="match_parent"
+        android:layout_weight="0"
+        app:srcCompat="?android:attr/colorEdgeEffect" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0"
+        android:gravity="left|center_vertical"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/musicTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:ellipsize="marquee"
+            android:maxEms="10"
+            android:singleLine="true"
+            android:text="歌曲名"
+            android:textSize="24sp" />
+
+        <TextView
+            android:id="@+id/singerAndduration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:ellipsize="marquee"
+            android:maxEms="30"
+            android:singleLine="true"
+            android:text="歌手·时长"
+            android:textSize="14sp" />
+    </LinearLayout>
+</LinearLayout>

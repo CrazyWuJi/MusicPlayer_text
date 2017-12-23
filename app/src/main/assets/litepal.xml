@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<litepal>
+    <dbname value="MusicList"></dbname>
+    <version value="1"></version>
+
+    <list>
+        <mapping class="com.example.hasee.player02.db.MusicList"></mapping>
+    </list>
+</litepal>
