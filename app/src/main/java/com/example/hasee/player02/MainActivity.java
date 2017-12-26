@@ -25,11 +25,13 @@ import android.widget.CompoundButton;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.hasee.player02.Fragments.MusicLyricFragment;
 import com.example.hasee.player02.Fragments.MusicPicFragment;
+import com.example.hasee.player02.Listener.PlayerListener_Service;
 import com.example.hasee.player02.db.MusicList;
 import com.example.hasee.player02.service.PlayerService;
 
@@ -37,19 +39,55 @@ import org.litepal.crud.DataSupport;
 
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBarChangeListener{
 
+    int duration;
     ImageButton showList;
-    TextView Title_Main;
-    Boolean isMusicPicFragment=true;
+    TextView Title_Main,musicProgress_text;
+    Boolean isMusicPicFragment=true,isSeekBarChanging=false;
     FrameLayout frameLayout;
     ImageView musicPic;
+    SeekBar musicProgress_seekbar;
     MusicPicFragment musicPicFragment;
     MusicLyricFragment musicLyricFragment;
     PlayerService.PlayBinder playerBinder;
     Integer SelectedNumber;
     ImageButton btnStart,btnNext,btnPre;
     CheckBox Looping;
+    public PlayerListener_Service playerListener_service=new PlayerListener_Service() {
+        @Override
+        public void setProgress(int progress) {
+            if(!isSeekBarChanging){
+                musicProgress_seekbar.setProgress(progress);
+            }
+            musicProgress_text.setText(String.valueOf(progress/1000)+"/"+String.valueOf(duration/1000));
+        }
+        @Override
+        public void setTitle(String title) {
+            Title_Main.setText(String.valueOf(title));
+        }
+
+        @Override
+        public void setMusicPic(Bitmap bitmap) {
+
+        }
+
+        @Override
+        public void setDuration(int Duration) {
+            duration=Duration;
+            //musicProgress_text.setText(String.valueOf(Duration));
+            musicProgress_seekbar.setMax(Duration);
+        }
+        @Override
+        public void initBtnPlay(){
+            if(playerBinder.isPlaying()){
+                btnStart.setImageResource(android.R.drawable.ic_media_pause);
+            }else{
+                btnStart.setImageResource(android.R.drawable.ic_media_play);
+            }
+        }
+    };
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +96,9 @@ public class MainActivity extends AppCompatActivity {
         musicPicFragment=new MusicPicFragment();
         musicLyricFragment=new MusicLyricFragment();
         Title_Main=(TextView)findViewById(R.id.title_main);
+        musicProgress_seekbar=(SeekBar)findViewById(R.id.musicProgress_seekbar);
+        musicProgress_seekbar.setOnSeekBarChangeListener(this);
+        musicProgress_text=(TextView)findViewById(R.id.musicProgress_text);
         showList=(ImageButton)findViewById(R.id.showList);
         showList.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -146,6 +187,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
             playerBinder=(PlayerService.PlayBinder)iBinder;
+            playerBinder.setListener_service(playerListener_service);
         }
 
         @Override
@@ -164,4 +206,19 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+
+    }
+
+    @Override
+    public void onStartTrackingTouch(SeekBar seekBar) {
+        isSeekBarChanging=true;
+    }
+
+    @Override
+    public void onStopTrackingTouch(SeekBar seekBar) {
+        isSeekBarChanging=false;
+        playerBinder.setProgress(seekBar.getProgress());
+    }
 }
