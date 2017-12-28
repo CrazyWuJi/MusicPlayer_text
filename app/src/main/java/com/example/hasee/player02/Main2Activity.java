@@ -104,6 +104,7 @@ public class Main2Activity extends AppCompatActivity {
                 byte[] embedPic=mmr.getEmbeddedPicture();
                 Bitmap bitmap= BitmapFactory.decodeByteArray(embedPic,0,embedPic.length);
                 mu.setBitmap(bitmap);
+                mmr.release();
             }
             adapter=new musicAdapter(this,R.layout.music_item,musicList_items);
             musicList.setAdapter(adapter);

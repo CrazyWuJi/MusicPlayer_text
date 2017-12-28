@@ -13,6 +13,8 @@ import android.os.Message;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.example.hasee.player02.Fragments.WordView;
+import com.example.hasee.player02.Fragments.interface_class;
 import com.example.hasee.player02.Listener.PlayerListener_Service;
 import com.example.hasee.player02.db.MusicList;
 
@@ -35,11 +37,15 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
     }
     private PlayerListener_Service playerListener_service;
     private Handler mHander;
+    private List<Integer> mTimeList;
+    public WordView mWordView;
+    public int mIndex=0;
     String musicName;
 
     @Override
     public void onCreate(){
         mper=new MediaPlayer();
+        timer=new Timer();
         //Toast.makeText(this,"创建完成",Toast.LENGTH_SHORT).show();
         mper.setOnPreparedListener(this);
         mper.setOnErrorListener(this);
@@ -49,6 +55,9 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
             public void handleMessage(Message msg){
                 if(msg.what==100){
                     playerListener_service.setProgress(mper.getCurrentPosition());
+                }else if(msg.what==200){
+                    mWordView.mIndex=mIndex;
+                    mWordView.invalidate();
                 }
             }
         };
@@ -65,13 +74,33 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
 
     @Override
     public int onStartCommand(Intent intent,int flags,int startId){
-        timer=new Timer();
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
                 if(everPlayed){
+                    int ii=0,iii=0;
                     if(isPrepared){
                         mHander.sendEmptyMessage(100);
+                    }
+                    if(mper.isPlaying()){
+                        ii=mper.getCurrentPosition();
+                        iii=mper.getDuration();
+                    }
+                    if(ii<iii){
+                        for (int i = 0; i < mTimeList.size(); i++) {
+                            if (i < mTimeList.size() - 1) {
+                                if (ii < mTimeList.get(i) && i == 0) {
+                                    mIndex = i;
+                                }
+                                if ((ii > mTimeList.get(i))&& ii < mTimeList.get(i+1)) {
+                                    mIndex = i;
+                                }
+                            }
+                            if ((i == mTimeList.size() - 1)&& ii > mTimeList.get(i)) {
+                                mIndex = i;
+                            }
+                        }
+                        mHander.sendEmptyMessage(200);
                     }
                 }
 
@@ -115,7 +144,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
     }
 
     public void setDataSource(int num){
-        MediaMetadataRetriever mmp=new MediaMetadataRetriever();
+        MediaMetadataRetriever mmr=new MediaMetadataRetriever();
         try {
             isPrepared=false;
             mper.reset();
@@ -130,15 +159,15 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
             mper.setLooping(Looping);
             mper.prepareAsync();
 
-            mmp.setDataSource(PlayerService.this,uri);
-            musicName=mmp.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+            mmr.setDataSource(PlayerService.this,uri);
+            musicName=mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
 
             //Toast.makeText(PlayerService.this,"Show Message"+uri.toString(),Toast.LENGTH_SHORT).show();
         }catch (Exception e){
             Log.d("PlayerService",e.toString());
             Toast.makeText(this,e.toString()+"啦啦啦"+number,Toast.LENGTH_SHORT).show();
         }finally {
-            mmp.release();
+            mmr.release();
         }
     }
 
@@ -177,20 +206,14 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
                 Toast.makeText(context,"列表循环",Toast.LENGTH_SHORT).show();
             }
         }
-        public int getProgress(){
-            return mper.getCurrentPosition();
-        }
         public void setProgress(int progress){
             mper.seekTo(progress);
         }
-        public int getDuration(){
-            return mper.getDuration();
-        }
-        public boolean isPrepared(){
-            return isPrepared;
-        }
         public void setListener_service(PlayerListener_Service pp){
             PlayerService.this.playerListener_service=pp;
+            PlayerService.this.mTimeList=pp.getTimeList();
+            //Toast.makeText(PlayerService.this,String.valueOf(pp.getTimeList().size()),Toast.LENGTH_SHORT).show();
+            PlayerService.this.mWordView=pp.getWordView();
         }
     }
 }

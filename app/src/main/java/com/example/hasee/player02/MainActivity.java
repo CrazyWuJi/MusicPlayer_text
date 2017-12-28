@@ -1,5 +1,6 @@
 package com.example.hasee.player02;
 
+import android.annotation.SuppressLint;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.ComponentName;
@@ -10,6 +11,7 @@ import android.graphics.BitmapFactory;
 import android.media.Image;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
+import android.os.Environment;
 import android.os.IBinder;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
@@ -29,8 +31,11 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.hasee.player02.Fragments.LrcHandle;
 import com.example.hasee.player02.Fragments.MusicLyricFragment;
 import com.example.hasee.player02.Fragments.MusicPicFragment;
+import com.example.hasee.player02.Fragments.WordView;
+import com.example.hasee.player02.Fragments.interface_class;
 import com.example.hasee.player02.Listener.PlayerListener_Service;
 import com.example.hasee.player02.db.MusicList;
 import com.example.hasee.player02.service.PlayerService;
@@ -54,40 +59,10 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     Integer SelectedNumber;
     ImageButton btnStart,btnNext,btnPre;
     CheckBox Looping;
-    public PlayerListener_Service playerListener_service=new PlayerListener_Service() {
-        @Override
-        public void setProgress(int progress) {
-            if(!isSeekBarChanging){
-                musicProgress_seekbar.setProgress(progress);
-            }
-            musicProgress_text.setText(String.valueOf(progress/1000)+"/"+String.valueOf(duration/1000));
-        }
-        @Override
-        public void setTitle(String title) {
-            Title_Main.setText(String.valueOf(title));
-        }
+    LrcHandle lrcHandle;
 
-        @Override
-        public void setMusicPic(Bitmap bitmap) {
 
-        }
-
-        @Override
-        public void setDuration(int Duration) {
-            duration=Duration;
-            //musicProgress_text.setText(String.valueOf(Duration));
-            musicProgress_seekbar.setMax(Duration);
-        }
-        @Override
-        public void initBtnPlay(){
-            if(playerBinder.isPlaying()){
-                btnStart.setImageResource(android.R.drawable.ic_media_pause);
-            }else{
-                btnStart.setImageResource(android.R.drawable.ic_media_play);
-            }
-        }
-    };
-
+    @SuppressLint("SdCardPath")
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -107,6 +82,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                 startActivityForResult(intent,100);
             }
         });
+        initLrcHandle();
         musicPic=(ImageView)findViewById(R.id.musicPic);
         frameLayout=(FrameLayout)findViewById(R.id.Main_Fragment);
         frameLayout.setOnClickListener(new View.OnClickListener() {
@@ -142,14 +118,16 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                 playerBinder.setLooping(b,MainActivity.this);
             }
         });
-        Intent startService=new Intent(this,PlayerService.class);
-        startService(startService);
-        bindService(startService,connection,BIND_AUTO_CREATE);
         android.support.v4.app.FragmentManager fragmentManager=getSupportFragmentManager();
         FragmentTransaction transaction=fragmentManager.beginTransaction();
+        transaction.add(R.id.Main_Fragment,musicLyricFragment);
+        //transaction.commit();
         transaction.add(R.id.Main_Fragment,musicPicFragment);
         transaction.commit();
         isMusicPicFragment=true;
+        Intent startService=new Intent(this,PlayerService.class);
+        startService(startService);
+        bindService(startService,connection,BIND_AUTO_CREATE);
     }
 
     @Override
@@ -221,4 +199,53 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         isSeekBarChanging=false;
         playerBinder.setProgress(seekBar.getProgress());
     }
+
+    public void initLrcHandle(){
+        lrcHandle=new LrcHandle();
+        lrcHandle.readLRC(Environment.getExternalStorageDirectory()+"/Download/前前前世.lrc");
+    }
+
+    public PlayerListener_Service playerListener_service=new PlayerListener_Service() {
+        @Override
+        public void setProgress(int progress) {
+            if(!isSeekBarChanging){
+                musicProgress_seekbar.setProgress(progress);
+            }
+            musicProgress_text.setText(String.valueOf(progress/1000)+"/"+String.valueOf(duration/1000));
+        }
+        @Override
+        public void setTitle(String title) {
+            Title_Main.setText(String.valueOf(title));
+        }
+
+        @Override
+        public void setMusicPic(Bitmap bitmap) {
+
+        }
+
+        @Override
+        public void setDuration(int Duration) {
+            duration=Duration;
+            //musicProgress_text.setText(String.valueOf(Duration));
+            musicProgress_seekbar.setMax(Duration);
+        }
+        @Override
+        public void initBtnPlay(){
+            if(playerBinder.isPlaying()){
+                btnStart.setImageResource(android.R.drawable.ic_media_pause);
+            }else{
+                btnStart.setImageResource(android.R.drawable.ic_media_play);
+            }
+        }
+
+        @Override
+        public List<Integer> getTimeList() {
+            return lrcHandle.getTime();
+        }
+
+        @Override
+        public WordView getWordView() {
+            return musicLyricFragment.getview();
+        }
+    };
 }
