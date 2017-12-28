@@ -111,6 +111,13 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                 }
             }
         });
+        btnNext=(ImageButton)findViewById(R.id.btnNext);
+        btnNext.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                playerBinder.nextOne();
+            }
+        });
         Looping=(CheckBox)findViewById(R.id.Looping);
         Looping.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -213,6 +220,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     public void initLrcHanle_forall(String title){
         lrcHandle.readLRC(Environment.getExternalStorageDirectory()+"/Download/"+title+".lrc");
         mWordView.upDataLrc(lrcHandle.getWords());
+        playerBinder.setmTimeList(lrcHandle.getTime());
     }
 
     public PlayerListener_Service playerListener_service=new PlayerListener_Service() {

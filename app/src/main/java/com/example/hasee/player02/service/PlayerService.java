@@ -78,10 +78,10 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
             @Override
             public void run() {
                 if(everPlayed){
-                    int ii=0,iii=0;
                     if(isPrepared){
                         mHander.sendEmptyMessage(100);
                     }
+                    int ii=0,iii=0;
                     if(mper.isPlaying()){
                         ii=mper.getCurrentPosition();
                         iii=mper.getDuration();
@@ -214,6 +214,12 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
             PlayerService.this.mTimeList=pp.getTimeList();
             //Toast.makeText(PlayerService.this,String.valueOf(pp.getTimeList().size()),Toast.LENGTH_SHORT).show();
             PlayerService.this.mWordView=pp.getWordView();
+        }
+        public void setmTimeList(List<Integer> ii){
+            PlayerService.this.mTimeList=ii;
+        }
+        public void nextOne(){
+            PlayerService.this.onCompletion(PlayerService.this.mper);
         }
     }
 }

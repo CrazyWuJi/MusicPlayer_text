@@ -25,11 +25,11 @@ public class LrcHandle {
 
     //处理歌词文件
     public void readLRC(String path) {
-
         try {
             mWords.clear();
             mTimeList.clear();
             File file = new File(path);
+
             FileInputStream fileInputStream = new FileInputStream(file);
             InputStreamReader inputStreamReader = new InputStreamReader(
                     fileInputStream, "utf-8");
