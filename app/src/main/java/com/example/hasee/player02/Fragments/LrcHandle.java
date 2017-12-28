@@ -25,9 +25,11 @@ public class LrcHandle {
 
     //处理歌词文件
     public void readLRC(String path) {
-        File file = new File(path);
 
         try {
+            mWords.clear();
+            mTimeList.clear();
+            File file = new File(path);
             FileInputStream fileInputStream = new FileInputStream(file);
             InputStreamReader inputStreamReader = new InputStreamReader(
                     fileInputStream, "utf-8");
@@ -52,10 +54,14 @@ public class LrcHandle {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
             mWords.clear();
+            mTimeList.clear();
             mWords.add("没有歌词文件，赶紧去下载");
         } catch (IOException e) {
             e.printStackTrace();
             mWords.add("没有读取到歌词");
+        }catch (Exception e){
+            e.printStackTrace();
+            mWords.add(e.toString());
         }
     }
     public List<String> getWords() {

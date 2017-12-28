@@ -96,7 +96,6 @@ public class WordView extends android.support.v7.widget.AppCompatTextView {
 
 
     public void upDataLrc(List<String> ii){
-        //mWordsList.clear();
         mIndex=0;
         mWordsList=ii;
         this.invalidate();
