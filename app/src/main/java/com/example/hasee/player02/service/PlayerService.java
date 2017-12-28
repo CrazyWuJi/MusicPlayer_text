@@ -134,13 +134,14 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
     @Override
     public void onPrepared(MediaPlayer mediaPlayer) {
         isPrepared=true;
+        mIndex=0;
         playerListener_service.setTitle(musicName);
         playerListener_service.setDuration(mper.getDuration());
         if(isStart){
             mper.start();
             playerListener_service.initBtnPlay();
         }
-        Toast.makeText(PlayerService.this,"准备完成",Toast.LENGTH_SHORT).show();
+       //Toast.makeText(PlayerService.this,"准备完成",Toast.LENGTH_SHORT).show();
     }
 
     public void setDataSource(int num){

@@ -157,7 +157,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                         String titleString=mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
                         Title_Main.setText(titleString);
                         playerBinder.setDataNumber(SelectedNumber,MainActivity.this);
-                        initLrcHanle_forall(mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE));
+                        //initLrcHanle_forall(mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE));
                         mmr.release();
                     }catch (Exception e){
                         Log.d("MainActivity",e.toString());
@@ -221,6 +221,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         lrcHandle.readLRC(Environment.getExternalStorageDirectory()+"/Download/"+title+".lrc");
         mWordView.upDataLrc(lrcHandle.getWords());
         playerBinder.setmTimeList(lrcHandle.getTime());
+        //Toast.makeText(this,String.valueOf(lrcHandle.getWords().size())+"+"+String.valueOf(lrcHandle.getTime().size()),Toast.LENGTH_SHORT).show();
     }
 
     public PlayerListener_Service playerListener_service=new PlayerListener_Service() {
