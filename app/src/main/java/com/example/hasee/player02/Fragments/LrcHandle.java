@@ -51,6 +51,7 @@ public class LrcHandle {
             fileInputStream.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
+            mWords.clear();
             mWords.add("没有歌词文件，赶紧去下载");
         } catch (IOException e) {
             e.printStackTrace();

@@ -60,6 +60,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     ImageButton btnStart,btnNext,btnPre;
     CheckBox Looping;
     LrcHandle lrcHandle;
+    WordView mWordView;
 
 
     @SuppressLint("SdCardPath")
@@ -82,7 +83,6 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                 startActivityForResult(intent,100);
             }
         });
-        initLrcHandle();
         musicPic=(ImageView)findViewById(R.id.musicPic);
         frameLayout=(FrameLayout)findViewById(R.id.Main_Fragment);
         frameLayout.setOnClickListener(new View.OnClickListener() {
@@ -118,6 +118,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                 playerBinder.setLooping(b,MainActivity.this);
             }
         });
+        initLrcHandle("NULL");
         android.support.v4.app.FragmentManager fragmentManager=getSupportFragmentManager();
         FragmentTransaction transaction=fragmentManager.beginTransaction();
         transaction.add(R.id.Main_Fragment,musicLyricFragment);
@@ -149,6 +150,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                         String titleString=mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
                         Title_Main.setText(titleString);
                         playerBinder.setDataNumber(SelectedNumber,MainActivity.this);
+                        initLrcHanle_forall(mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE));
                         mmr.release();
                     }catch (Exception e){
                         Log.d("MainActivity",e.toString());
@@ -166,6 +168,8 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
             playerBinder=(PlayerService.PlayBinder)iBinder;
             playerBinder.setListener_service(playerListener_service);
+            mWordView=musicLyricFragment.getview();
+            mWordView.upDataLrc(lrcHandle.getWords());
         }
 
         @Override
@@ -200,9 +204,15 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         playerBinder.setProgress(seekBar.getProgress());
     }
 
-    public void initLrcHandle(){
+    public void initLrcHandle(String title){
         lrcHandle=new LrcHandle();
-        lrcHandle.readLRC(Environment.getExternalStorageDirectory()+"/Download/前前前世.lrc");
+        lrcHandle.readLRC(Environment.getExternalStorageDirectory()+"/Download/"+title+".lrc");
+        //Toast.makeText(MainActivity.this,"Success!"+String.valueOf(lrcHandle.getWords().size()),Toast.LENGTH_SHORT).show();
+    }
+
+    public void initLrcHanle_forall(String title){
+        lrcHandle.readLRC(Environment.getExternalStorageDirectory()+"/Download/"+title+".lrc");
+        mWordView.upDataLrc(lrcHandle.getWords());
     }
 
     public PlayerListener_Service playerListener_service=new PlayerListener_Service() {
@@ -216,6 +226,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         @Override
         public void setTitle(String title) {
             Title_Main.setText(String.valueOf(title));
+            initLrcHanle_forall(title);
         }
 
         @Override

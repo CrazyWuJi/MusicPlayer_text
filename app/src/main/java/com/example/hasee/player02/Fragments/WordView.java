@@ -18,7 +18,6 @@ import java.util.List;
  */
 
 public class WordView extends android.support.v7.widget.AppCompatTextView {
-    private List<String> mWordsList = new ArrayList<String>();
     private Paint mLoseFocusPaint;
     private Paint mOnFocusePaint;
     private float mX = 0;
@@ -26,6 +25,7 @@ public class WordView extends android.support.v7.widget.AppCompatTextView {
     private float mY = 0;
     private static final int DY = 50;
     public int mIndex = 0;
+    public List<String> mWordsList = new ArrayList<String>();
 
 
     public WordView(Context context) throws IOException {
@@ -94,6 +94,13 @@ public class WordView extends android.support.v7.widget.AppCompatTextView {
         mMiddleY = h * 0.3f;
     }
 
+
+    public void upDataLrc(List<String> ii){
+        //mWordsList.clear();
+        mIndex=0;
+        mWordsList=ii;
+        this.invalidate();
+    }
 
     @SuppressLint("SdCardPath")
     private void init() throws IOException {

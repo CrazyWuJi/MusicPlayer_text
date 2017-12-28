@@ -28,5 +28,8 @@ public class MusicLyricFragment extends Fragment{
         return (WordView)view.findViewById(R.id.text);
     }
 
+    public void show(Context context){
+        Toast.makeText(context,"Success!",Toast.LENGTH_SHORT).show();
+    }
 
 }
