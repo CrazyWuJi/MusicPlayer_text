@@ -76,10 +76,10 @@ public class WordView extends android.support.v7.widget.AppCompatTextView {
             }
             p.setColor(Color.argb(255 - alphaValue, 245, 245, 245));
             canvas.drawText(mWordsList.get(i), mX, tempY, p);
-            if(alphaValue+25>255){
+            if(alphaValue+10>255){
                 alphaValue=255;
             }else{
-                alphaValue += 25;
+                alphaValue += 10;
             }
         }
         //mIndex++;

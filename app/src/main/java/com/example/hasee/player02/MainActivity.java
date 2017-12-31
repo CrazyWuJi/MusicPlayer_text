@@ -54,7 +54,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     int duration;
     ImageButton showList;
     TextView Title_Main,musicProgress_text;
-    Boolean isMusicPicFragment=true,isSeekBarChanging=false;
+    Boolean isMusicPicFragment=true,isSeekBarChanging=false,isplayed=false;
     FrameLayout frameLayout;
     ImageView musicPic;
     SeekBar musicProgress_seekbar;
@@ -111,11 +111,15 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         btnStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                playerBinder.startPlay();
-                if(playerBinder.isPlaying()){
-                    btnStart.setImageResource(android.R.drawable.ic_media_pause);
+                if(isplayed){
+                    playerBinder.startPlay();
+                    if(playerBinder.isPlaying()){
+                        btnStart.setImageResource(android.R.drawable.ic_media_pause);
+                    }else{
+                        btnStart.setImageResource(android.R.drawable.ic_media_play);
+                    }
                 }else{
-                    btnStart.setImageResource(android.R.drawable.ic_media_play);
+                    Toast.makeText(MainActivity.this,"请选择歌曲",Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -123,14 +127,22 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         btnNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                playerBinder.nextOne();
+                if(isplayed){
+                    playerBinder.nextOne();
+                }else{
+                    Toast.makeText(MainActivity.this,"请选择歌曲",Toast.LENGTH_SHORT).show();
+                }
             }
         });
         btnPre=(ImageButton)findViewById(R.id.btnPre);
         btnPre.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                playerBinder.previousOne();
+                if(isplayed){
+                    playerBinder.previousOne();
+                }else{
+                    Toast.makeText(MainActivity.this,"请选择歌曲",Toast.LENGTH_SHORT).show();
+                }
             }
         });
         Looping=(CheckBox)findViewById(R.id.Looping);
@@ -259,6 +271,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         }
         @Override
         public void setTitle(String title) {
+            isplayed=true;
             Title_Main.setText(String.valueOf(title));
             initLrcHanle_forall(title);
         }

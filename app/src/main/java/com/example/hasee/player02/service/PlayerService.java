@@ -115,6 +115,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
     @Override
     public void onCompletion(MediaPlayer mediaPlayer) {
         mper.seekTo(0);
+        everPlayed=true;
         isPrepared=false;
         int counter=DataSupport.count(MusicList.class);
         if(counter<=0){
@@ -136,6 +137,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
     public void Previous(MediaPlayer mediaPlayer){
         mper.seekTo(0);
         isPrepared=false;
+        everPlayed=true;
         int counter=DataSupport.count(MusicList.class);
         if(counter<=0){
             Toast.makeText(PlayerService.this,"列表为空",Toast.LENGTH_SHORT).show();

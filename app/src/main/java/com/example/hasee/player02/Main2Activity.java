@@ -6,6 +6,8 @@ import android.graphics.BitmapFactory;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -39,6 +41,7 @@ public class Main2Activity extends AppCompatActivity {
     public musicAdapter adapter;
     public List<MusicList> musicLists=new ArrayList<>();
     public List<musicList_Item> musicList_items=new ArrayList<>();
+    private Handler mHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,6 +81,18 @@ public class Main2Activity extends AppCompatActivity {
                 startActivityForResult(intent,100);
             }
         });
+        mHandler=new Handler(){
+            @Override
+            public void handleMessage(Message msg){
+                switch (msg.what){
+                    case 0:
+                        updataListView();
+                        break;
+                    default:
+                        break;
+                }
+            }
+        };
     }
 
     protected void showList(){
@@ -98,7 +113,7 @@ public class Main2Activity extends AppCompatActivity {
             }
             updataListView();
 
-            for(musicList_Item mu:musicList_items){
+            /*for(musicList_Item mu:musicList_items){
                 uri=Uri.parse(mu.getUri());
                 MediaMetadataRetriever mmr=new MediaMetadataRetriever();
                 mmr.setDataSource(this,uri);
@@ -109,23 +124,15 @@ public class Main2Activity extends AppCompatActivity {
             }
             adapter=new musicAdapter(this,R.layout.music_item,musicList_items);
             musicList.setAdapter(adapter);
-            adapter.notifyDataSetChanged();
+            adapter.notifyDataSetChanged();*/
 
-            /*new Thread(new Runnable() {
+            new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    for(musicList_Item mu:Main2Activity.this.musicList_items){
-                        uri=Uri.parse(mu.getUri());
-                        MediaMetadataRetriever mmr=new MediaMetadataRetriever();
-                        mmr.setDataSource(Main2Activity.this,uri);
-                        byte[] embedPic=mmr.getEmbeddedPicture();
-                        Bitmap bitmap= BitmapFactory.decodeByteArray(embedPic,0,embedPic.length);
-                        mu.setBitmap(bitmap);
-                        mmr.release();
-                        updataListView();
-                    }
+                    updataMusicPic();
+                    mHandler.sendEmptyMessage(0);
                 }
-            }).start();*/
+            }).start();
         }catch (Exception e){
             Log.d("Main2Activity",e.toString());
             tos.setText(e.toString());
@@ -137,6 +144,24 @@ public class Main2Activity extends AppCompatActivity {
         adapter=new musicAdapter(this,R.layout.music_item,musicList_items);
         musicList.setAdapter(adapter);
         adapter.notifyDataSetChanged();
+    }
+
+    public void updataMusicPic(){
+        try {
+            for(musicList_Item mu:musicList_items){
+                uri=Uri.parse(mu.getUri());
+                MediaMetadataRetriever mmr=new MediaMetadataRetriever();
+                mmr.setDataSource(Main2Activity.this,uri);
+                byte[] embedPic=mmr.getEmbeddedPicture();
+                Bitmap bitmap= BitmapFactory.decodeByteArray(embedPic,0,embedPic.length);
+                mu.setBitmap(bitmap);
+                mmr.release();
+            }
+        }catch (Exception e){
+            Log.d("Main2Activity",e.toString());
+            Toast.makeText(Main2Activity.this,e.toString(),Toast.LENGTH_SHORT).show();
+        }
+
     }
 
     @Override
