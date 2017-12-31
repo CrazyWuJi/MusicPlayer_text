@@ -6,6 +6,7 @@ import android.app.FragmentManager;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.Image;
@@ -184,6 +185,16 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
             playerBinder.setListener_service(playerListener_service);
             mWordView=musicLyricFragment.getview();
             mWordView.upDataLrc(lrcHandle.getWords());
+            SharedPreferences sharedPreferences=getSharedPreferences("data",MODE_PRIVATE);
+            int number=sharedPreferences.getInt("number",-1);
+            int progress=sharedPreferences.getInt("progress",-1);
+            //Toast.makeText(MainActivity.this,String.valueOf(progress)+"  "+String.valueOf(number),Toast.LENGTH_SHORT).show();
+            if(number!=-1){
+                playerBinder.setDataNumber(number,MainActivity.this);
+                if(progress!=-1){
+                    playerBinder.setNewPregress(progress);
+                }
+            }
         }
 
         @Override
@@ -275,4 +286,16 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
             return musicLyricFragment.getview();
         }
     };
+
+    @Override
+    protected void onDestroy(){
+        if(playerBinder.isEverPlayed()){
+            SharedPreferences.Editor editor=getSharedPreferences("data",MODE_PRIVATE).edit();
+            editor.putInt("progress",playerBinder.getPregress());
+            editor.putInt("number",playerBinder.getPlayingNumber());
+            editor.apply();
+            playerBinder.stop();
+        }
+        super.onDestroy();
+    }
 }

@@ -117,28 +117,39 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         mper.seekTo(0);
         isPrepared=false;
         int counter=DataSupport.count(MusicList.class);
-        if(number+1>=counter){
+        if(counter<=0){
+            Toast.makeText(PlayerService.this,"列表为空",Toast.LENGTH_SHORT).show();
             number=0;
         }else{
-            number++;
+            if(number+1>=counter){
+                number=0;
+            }else{
+                number++;
+            }
+            playerListener_service.initBtnPlay();
+            isStart=true;
+            setDataSource(5);
         }
-        playerListener_service.initBtnPlay();
-        isStart=true;
-        setDataSource(5);
+
     }
 
     public void Previous(MediaPlayer mediaPlayer){
         mper.seekTo(0);
         isPrepared=false;
         int counter=DataSupport.count(MusicList.class);
-        if(number-1<0){
-            number=counter-1;
+        if(counter<=0){
+            Toast.makeText(PlayerService.this,"列表为空",Toast.LENGTH_SHORT).show();
+            number=0;
         }else{
-            number--;
+            if(number-1<0){
+                number=counter-1;
+            }else{
+                number--;
+            }
+            playerListener_service.initBtnPlay();
+            isStart=true;
+            setDataSource(5);
         }
-        playerListener_service.initBtnPlay();
-        isStart=true;
-        setDataSource(5);
     }
 
     @Override
@@ -151,6 +162,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
     @Override
     public void onPrepared(MediaPlayer mediaPlayer) {
         isPrepared=true;
+        everPlayed=true;
         mIndex=0;
         playerListener_service.setTitle(musicName);
         playerListener_service.setDuration(mper.getDuration());
@@ -166,27 +178,32 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         MediaMetadataRetriever mmr=new MediaMetadataRetriever();
         try {
             isPrepared=false;
-            mper.reset();
-            //musicLists.clear();
-            musicLists= DataSupport.findAll(MusicList.class);
-            //Toast.makeText(PlayerService.this,"setDataSource",Toast.LENGTH_SHORT).show();
-            MusicList musicSelected=musicLists.get(number);
-            uri=Uri.parse(musicSelected.getUri());
-            //Toast.makeText(PlayerService.this,"Show Message"+uri.toString(),Toast.LENGTH_SHORT).show();
-            mper.setDataSource(this,uri);
-            //Toast.makeText(PlayerService.this,"Show Message"+uri.toString(),Toast.LENGTH_SHORT).show();
-            mper.setLooping(Looping);
-            mper.prepareAsync();
+            if(DataSupport.count(MusicList.class)<=0){
+                Toast.makeText(PlayerService.this,"列表为空",Toast.LENGTH_SHORT).show();
+                number=0;
+            }else{
+                mper.reset();
+                //musicLists.clear();
+                musicLists= DataSupport.findAll(MusicList.class);
+                //Toast.makeText(PlayerService.this,"setDataSource",Toast.LENGTH_SHORT).show();
+                MusicList musicSelected=musicLists.get(number);
+                uri=Uri.parse(musicSelected.getUri());
+                //Toast.makeText(PlayerService.this,"Show Message"+uri.toString(),Toast.LENGTH_SHORT).show();
+                mper.setDataSource(this,uri);
+                //Toast.makeText(PlayerService.this,"Show Message"+uri.toString(),Toast.LENGTH_SHORT).show();
+                mper.setLooping(Looping);
+                mper.prepareAsync();
 
-            mmr.setDataSource(PlayerService.this,uri);
-            musicName=mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
-            byte[] embedPic=mmr.getEmbeddedPicture();
-            musicPic= BitmapFactory.decodeByteArray(embedPic,0,embedPic.length);
+                mmr.setDataSource(PlayerService.this,uri);
+                musicName=mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+                byte[] embedPic=mmr.getEmbeddedPicture();
+                musicPic= BitmapFactory.decodeByteArray(embedPic,0,embedPic.length);
 
-            //Toast.makeText(PlayerService.this,"Show Message"+uri.toString(),Toast.LENGTH_SHORT).show();
+                //Toast.makeText(PlayerService.this,"Show Message"+uri.toString(),Toast.LENGTH_SHORT).show();
+            }
         }catch (Exception e){
             Log.d("PlayerService",e.toString());
-            Toast.makeText(this,e.toString()+"啦啦啦"+number,Toast.LENGTH_SHORT).show();
+            Toast.makeText(this,e.toString()+number,Toast.LENGTH_SHORT).show();
         }finally {
             mmr.release();
         }
@@ -195,9 +212,9 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
 
     public class PlayBinder extends Binder{
         Context context;
+        int pp;
         public void setDataNumber(int Number, Context context){
             number=Number;
-            everPlayed=true;
             this.context=context;
             //Toast.makeText(context,String.valueOf(number)+"ooo",Toast.LENGTH_SHORT).show();
             PlayerService.this.setDataSource(number);
@@ -227,8 +244,22 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
                 Toast.makeText(context,"列表循环",Toast.LENGTH_SHORT).show();
             }
         }
+        public int getPregress(){
+            return PlayerService.this.mper.getCurrentPosition();
+        }
+        public void setNewPregress(int pro){
+            this.pp=pro;
+            TimerTask task=new TimerTask() {
+                @Override
+                public void run() {
+                    PlayerService.this.mper.seekTo(pp);
+                }
+            };
+            Timer tt=new Timer();
+            tt.schedule(task,500);
+        }
         public void setProgress(int progress){
-            mper.seekTo(progress);
+            PlayerService.this.mper.seekTo(progress);
         }
         public void setListener_service(PlayerListener_Service pp){
             PlayerService.this.playerListener_service=pp;
@@ -244,6 +275,16 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         }
         public void previousOne(){
             PlayerService.this.Previous(PlayerService.this.mper);
+        }
+        public void stop(){
+            PlayerService.this.mper.pause();
+            PlayerService.this.mper.release();
+        }
+        public Boolean isEverPlayed(){
+            return PlayerService.this.everPlayed;
+        }
+        public int getPlayingNumber(){
+            return number;
         }
     }
 }
