@@ -118,6 +118,13 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                 playerBinder.nextOne();
             }
         });
+        btnPre=(ImageButton)findViewById(R.id.btnPre);
+        btnPre.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                playerBinder.previousOne();
+            }
+        });
         Looping=(CheckBox)findViewById(R.id.Looping);
         Looping.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -240,7 +247,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
 
         @Override
         public void setMusicPic(Bitmap bitmap) {
-
+            musicPicFragment.changeMuiscpic(bitmap);
         }
 
         @Override

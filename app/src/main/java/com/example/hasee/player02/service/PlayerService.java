@@ -3,6 +3,8 @@ package com.example.hasee.player02.service;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -38,6 +40,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
     private PlayerListener_Service playerListener_service;
     private Handler mHander;
     private List<Integer> mTimeList;
+    public Bitmap musicPic;
     public WordView mWordView;
     public int mIndex=0;
     String musicName;
@@ -124,6 +127,20 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         setDataSource(5);
     }
 
+    public void Previous(MediaPlayer mediaPlayer){
+        mper.seekTo(0);
+        isPrepared=false;
+        int counter=DataSupport.count(MusicList.class);
+        if(number-1<0){
+            number=counter-1;
+        }else{
+            number--;
+        }
+        playerListener_service.initBtnPlay();
+        isStart=true;
+        setDataSource(5);
+    }
+
     @Override
     public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
         isPrepared=false;
@@ -137,6 +154,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         mIndex=0;
         playerListener_service.setTitle(musicName);
         playerListener_service.setDuration(mper.getDuration());
+        playerListener_service.setMusicPic(musicPic);
         if(isStart){
             mper.start();
             playerListener_service.initBtnPlay();
@@ -162,6 +180,8 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
 
             mmr.setDataSource(PlayerService.this,uri);
             musicName=mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+            byte[] embedPic=mmr.getEmbeddedPicture();
+            musicPic= BitmapFactory.decodeByteArray(embedPic,0,embedPic.length);
 
             //Toast.makeText(PlayerService.this,"Show Message"+uri.toString(),Toast.LENGTH_SHORT).show();
         }catch (Exception e){
@@ -221,6 +241,9 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         }
         public void nextOne(){
             PlayerService.this.onCompletion(PlayerService.this.mper);
+        }
+        public void previousOne(){
+            PlayerService.this.Previous(PlayerService.this.mper);
         }
     }
 }
