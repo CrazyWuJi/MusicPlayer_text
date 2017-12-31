@@ -29,4 +29,9 @@ public class MusicPicFragment extends Fragment{
         ImageView imageView=(ImageView)view.findViewById(R.id.MusicPicView);
         imageView.setImageBitmap(bitmap);
     }
+
+    public void changesMusicPicByResource(int ss){
+        ImageView imageView=(ImageView)view.findViewById(R.id.MusicPicView);
+        imageView.setImageResource(ss);
+    }
 }

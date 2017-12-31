@@ -198,6 +198,9 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
 
                 mmr.setDataSource(PlayerService.this,uri);
                 musicName=mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+                if(musicName==null){
+                    musicName=uri.getLastPathSegment();
+                }
                 byte[] embedPic=mmr.getEmbeddedPicture();
                 musicPic= BitmapFactory.decodeByteArray(embedPic,0,embedPic.length);
 

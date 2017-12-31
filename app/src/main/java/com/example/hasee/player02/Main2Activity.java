@@ -12,6 +12,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.accessibility.AccessibilityManager;
 import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.ImageButton;
@@ -150,12 +151,16 @@ public class Main2Activity extends AppCompatActivity {
         try {
             for(musicList_Item mu:musicList_items){
                 uri=Uri.parse(mu.getUri());
-                MediaMetadataRetriever mmr=new MediaMetadataRetriever();
-                mmr.setDataSource(Main2Activity.this,uri);
-                byte[] embedPic=mmr.getEmbeddedPicture();
-                Bitmap bitmap= BitmapFactory.decodeByteArray(embedPic,0,embedPic.length);
-                mu.setBitmap(bitmap);
-                mmr.release();
+                if(mu.getTitle()!=null){
+                    MediaMetadataRetriever mmr=new MediaMetadataRetriever();
+                    mmr.setDataSource(Main2Activity.this,uri);
+                    byte[] embedPic=mmr.getEmbeddedPicture();
+                    Bitmap bitmap= BitmapFactory.decodeByteArray(embedPic,0,embedPic.length);
+                    mu.setBitmap(bitmap);
+                    mmr.release();
+                }else{
+                    mu.setTitle(String.valueOf(uri.getLastPathSegment()));
+                }
             }
         }catch (Exception e){
             Log.d("Main2Activity",e.toString());
@@ -174,23 +179,28 @@ public class Main2Activity extends AppCompatActivity {
                 tos.setText("歌曲已存在");
                 tos.show();
             }else {
-                MusicList musicSelcted=new MusicList();
-                musicSelcted.setUri(uri.toString());
-                MediaMetadataRetriever mmr=new MediaMetadataRetriever();
-                mmr.setDataSource(this,uri);
-                String titleString=mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
-                String artistString=mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
-                String durationString=mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
-                mmr.release();
-                /*TextView txv=(TextView)findViewById(R.id.title_main);
-                txv.setText(titleString);
-                tos.setText(titleString);
-                tos.show();*/
-                musicSelcted.setTitle(titleString);
-                musicSelcted.setArtist(artistString);
-                musicSelcted.setDuration(durationString);
-                musicSelcted.save();
-                showList();
+                try {
+                    MusicList musicSelcted=new MusicList();
+                    musicSelcted.setUri(uri.toString());
+                    MediaMetadataRetriever mmr=new MediaMetadataRetriever();
+                    mmr.setDataSource(this,uri);
+                    String titleString=mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+                    String artistString=mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
+                    String durationString=mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+                    mmr.release();
+                    /*TextView txv=(TextView)findViewById(R.id.title_main);
+                    txv.setText(titleString);
+                    tos.setText(titleString);
+                    tos.show();*/
+                    musicSelcted.setTitle(titleString);
+                    musicSelcted.setArtist(artistString);
+                    musicSelcted.setDuration(durationString);
+                    musicSelcted.save();
+                    showList();
+                }catch (Exception e){
+                    Log.d("Main2Activity",e.toString());
+                    Toast.makeText(Main2Activity.this,e.toString(),Toast.LENGTH_SHORT).show();
+                }
             }
         }
     }

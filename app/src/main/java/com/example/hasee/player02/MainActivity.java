@@ -278,7 +278,11 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
 
         @Override
         public void setMusicPic(Bitmap bitmap) {
-            musicPicFragment.changeMuiscpic(bitmap);
+            if(bitmap==null){
+                musicPicFragment.changesMusicPicByResource(android.R.color.darker_gray);
+            }else{
+                musicPicFragment.changeMuiscpic(bitmap);
+            }
         }
 
         @Override
