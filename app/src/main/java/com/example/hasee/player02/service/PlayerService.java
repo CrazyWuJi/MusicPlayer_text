@@ -1,5 +1,8 @@
 package com.example.hasee.player02.service;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -12,12 +15,15 @@ import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.example.hasee.player02.Fragments.WordView;
 import com.example.hasee.player02.Fragments.interface_class;
 import com.example.hasee.player02.Listener.PlayerListener_Service;
+import com.example.hasee.player02.MainActivity;
+import com.example.hasee.player02.R;
 import com.example.hasee.player02.db.MusicList;
 
 import org.litepal.crud.DataSupport;
