@@ -54,7 +54,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     int duration;
     ImageButton showList;
     TextView Title_Main,musicProgress_text;
-    Boolean isMusicPicFragment=true,isSeekBarChanging=false,isplayed=false;
+    Boolean isMusicPicFragment=true,isSeekBarChanging=false,isplayed=false,isBind=false;
     FrameLayout frameLayout;
     ImageView musicPic;
     SeekBar musicProgress_seekbar;
@@ -214,11 +214,12 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                     playerBinder.setNewPregress(progress);
                 }
             }
+            isBind=true;
         }
 
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
-
+            isBind=false;
         }
     };
 
@@ -320,7 +321,24 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
             editor.apply();
             playerBinder.stop();
         }
+        unbindService(connection);
         super.onDestroy();
+    }
+
+    @Override
+    protected void onPause(){
+        super.onPause();
+        if(isBind){
+            playerBinder.setIsPaused(true);
+        }
+    }
+
+    @Override
+    protected void onResume(){
+        super.onResume();
+        if(isBind){
+            playerBinder.setIsPaused(false);
+        }
     }
 
     @Override

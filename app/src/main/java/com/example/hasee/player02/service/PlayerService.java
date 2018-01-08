@@ -1,5 +1,8 @@
 package com.example.hasee.player02.service;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -12,12 +15,15 @@ import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.example.hasee.player02.Fragments.WordView;
 import com.example.hasee.player02.Fragments.interface_class;
 import com.example.hasee.player02.Listener.PlayerListener_Service;
+import com.example.hasee.player02.MainActivity;
+import com.example.hasee.player02.R;
 import com.example.hasee.player02.db.MusicList;
 
 import org.litepal.crud.DataSupport;
@@ -33,7 +39,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
     private Uri uri;
     private int number=0;
     private Timer timer;
-    private Boolean Looping=false,isPrepared=false,everPlayed=false,isStart=false;
+    private Boolean Looping=false,isPrepared=false,everPlayed=false,isStart=false,isPause=false;
     private List<MusicList> musicLists;
     public PlayerService() {
     }
@@ -58,6 +64,9 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
             public void handleMessage(Message msg){
                 if(msg.what==100){
                     playerListener_service.setProgress(mper.getCurrentPosition());
+                    if(isPause){
+                        getNotificationManager().notify(1,getNotification(musicName));
+                    }
                 }else if(msg.what==200){
                     mWordView.mIndex=mIndex;
                     mWordView.invalidate();
@@ -80,33 +89,33 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                if(everPlayed){
-                    if(isPrepared){
+                if(everPlayed) {
+                    if (isPrepared) {
                         mHander.sendEmptyMessage(100);
                     }
-                    int ii=0,iii=0;
-                    if(mper.isPlaying()){
-                        ii=mper.getCurrentPosition();
-                        iii=mper.getDuration();
+                    int ii = 0, iii = 0;
+                    if (mper.isPlaying()) {
+                        ii = mper.getCurrentPosition();
+                        iii = mper.getDuration();
                     }
-                    if(ii<iii){
+                    if (ii < iii) {
                         for (int i = 0; i < mTimeList.size(); i++) {
                             if (i < mTimeList.size() - 1) {
                                 if (ii < mTimeList.get(i) && i == 0) {
                                     mIndex = i;
                                 }
-                                if ((ii > mTimeList.get(i))&& ii < mTimeList.get(i+1)) {
+                                if ((ii > mTimeList.get(i)) && ii < mTimeList.get(i + 1)) {
                                     mIndex = i;
                                 }
                             }
-                            if ((i == mTimeList.size() - 1)&& ii > mTimeList.get(i)) {
+                            if ((i == mTimeList.size() - 1) && ii > mTimeList.get(i)) {
                                 mIndex = i;
                             }
                         }
                         mHander.sendEmptyMessage(200);
                     }
-                }
 
+                }
             }
         },0,50);
         return super.onStartCommand(intent,flags,startId);
@@ -214,6 +223,31 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         }
     }
 
+    private NotificationManager getNotificationManager(){
+        return (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+    }
+
+    private Notification getNotification(String title){
+        Intent intent=new Intent(this, MainActivity.class);
+        PendingIntent pi=PendingIntent.getActivity(this,0,intent,0);
+        NotificationCompat.Builder builder=new NotificationCompat.Builder(this);
+        builder.setSmallIcon(R.mipmap.ic_launcher);
+        builder.setLargeIcon(BitmapFactory.decodeResource(getResources(),R.mipmap.logo));
+        builder.setContentTitle(title);
+        builder.setContentText(String.valueOf(mper.getCurrentPosition()/1000)+"/"+String.valueOf(mper.getDuration()/1000));
+        builder.setProgress(mper.getDuration(),mper.getCurrentPosition(),false);
+        builder.setContentIntent(pi);
+        builder.setAutoCancel(true);
+        return builder.build();
+    }
+
+    public void startBack(){
+        startForeground(1,getNotification("无正在播放歌曲"));
+    }
+
+    public void stopBack(){
+        stopForeground(true);
+    }
 
     public class PlayBinder extends Binder{
         Context context;
@@ -287,6 +321,14 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         }
         public Boolean isEverPlayed(){
             return PlayerService.this.everPlayed;
+        }
+        public void setIsPaused(Boolean bb){
+            PlayerService.this.isPause=bb;
+            if(bb){
+                startBack();
+            }else{
+                stopBack();
+            }
         }
         public int getPlayingNumber(){
             return number;
