@@ -52,6 +52,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
     public int mIndex=0;
     String musicName;
 
+    //服务被创建时调用，获取各种实例。
     @Override
     public void onCreate(){
         tos=Toast.makeText(PlayerService.this,"",Toast.LENGTH_SHORT);
@@ -78,14 +79,14 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
     }
 
 
-
+    //用于活动与服务建立连接时返回Bind类实例。
     @Override
     public IBinder onBind(Intent intent) {
         return mBinder;
     }
 
 
-
+    //服务被启动时调用，新建定时任务更新播放位置。
     @Override
     public int onStartCommand(Intent intent,int flags,int startId){
         timer.schedule(new TimerTask() {
@@ -123,6 +124,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         return super.onStartCommand(intent,flags,startId);
     }
 
+    //MediaPlayer类歌曲播放完毕时调用。
     @Override
     public void onCompletion(MediaPlayer mediaPlayer) {
         mper.seekTo(0);
@@ -145,6 +147,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
 
     }
 
+    //播放上一曲。
     public void Previous(MediaPlayer mediaPlayer){
         mper.seekTo(0);
         isPrepared=false;
@@ -165,6 +168,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         }
     }
 
+    //MediaPlayer遇到错误时调用。
     @Override
     public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
         isPrepared=false;
@@ -172,6 +176,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         return true;
     }
 
+    //MediaPlayer准备好播放歌曲时调用。
     @Override
     public void onPrepared(MediaPlayer mediaPlayer) {
         isPrepared=true;
@@ -187,6 +192,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
        //Toast.makeText(PlayerService.this,"准备完成",Toast.LENGTH_SHORT).show();
     }
 
+    //设置播放的歌曲地址。
     public void setDataSource(int num){
         MediaMetadataRetriever mmr=new MediaMetadataRetriever();
         try {
@@ -225,10 +231,12 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         }
     }
 
+    //从系统获取NotificationManager实例。
     private NotificationManager getNotificationManager(){
         return (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
     }
 
+    //获取Notification实例。
     private Notification getNotification(String title){
         Intent intent=new Intent(this, MainActivity.class);
         PendingIntent pi=PendingIntent.getActivity(this,0,intent,0);
@@ -249,14 +257,17 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         return builder.build();
     }
 
+    //进入前台服务。
     public void startBack(){
         startForeground(1,getNotification("无正在播放歌曲"));
     }
 
+    //退出前台服务。
     public void stopBack(){
         stopForeground(true);
     }
 
+    //用于与服务绑定的活动控制服务。
     public class PlayBinder extends Binder{
         Context context;
         int pp;

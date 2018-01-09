@@ -67,7 +67,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     LrcHandle lrcHandle;
     WordView mWordView;
 
-
+    //首次启动互动时调用，用于获取各个组件实例与开启后台服务。
     @SuppressLint("SdCardPath")
 
     @Override
@@ -165,6 +165,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         bindService(startService,connection,BIND_AUTO_CREATE);
     }
 
+    //回调函数，用于获取歌曲列表返回的被选中的歌曲并播放，寻找歌词。
     @Override
     protected void onActivityResult(int reqCode,int resCode,Intent intent){
         switch (reqCode){
@@ -197,6 +198,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         }
     }
 
+    //绑定与解绑服务时调用，获取服务的Bind实例。
     private ServiceConnection connection=new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
@@ -223,6 +225,8 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         }
     };
 
+
+    //切换歌曲专辑图碎片与歌词显示碎片。
     private void switchFragment(android.support.v4.app.Fragment from, android.support.v4.app.Fragment to){
         android.support.v4.app.FragmentManager fragmentManager=getSupportFragmentManager();
         FragmentTransaction transaction=fragmentManager.beginTransaction();
@@ -238,23 +242,27 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
 
     }
 
+    //当SeekBar被拖动时调用，此时停止后台服务对SeekBar的调用。
     @Override
     public void onStartTrackingTouch(SeekBar seekBar) {
         isSeekBarChanging=true;
     }
 
+    //SeekBar被释放时调用，获取释放后的位置并修改播放时间。
     @Override
     public void onStopTrackingTouch(SeekBar seekBar) {
         isSeekBarChanging=false;
         playerBinder.setProgress(seekBar.getProgress());
     }
 
+    //由onCreate方法调用，初始化歌词界面使用。
     public void initLrcHandle(String title){
         lrcHandle=new LrcHandle();
         lrcHandle.readLRC(Environment.getExternalStorageDirectory()+"/Download/"+title+".lrc");
         //Toast.makeText(MainActivity.this,"Success!"+String.valueOf(lrcHandle.getWords().size()),Toast.LENGTH_SHORT).show();
     }
 
+    //获取歌词方法。
     public void initLrcHanle_forall(String title){
         lrcHandle.readLRC(Environment.getExternalStorageDirectory()+"/Download/"+title+".lrc");
         mWordView.upDataLrc(lrcHandle.getWords());
@@ -262,6 +270,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         //Toast.makeText(this,String.valueOf(lrcHandle.getWords().size())+"+"+String.valueOf(lrcHandle.getTime().size()),Toast.LENGTH_SHORT).show();
     }
 
+    //用于后台服务改变主界面。
     public PlayerListener_Service playerListener_service=new PlayerListener_Service() {
         @Override
         public void setProgress(int progress) {
@@ -314,6 +323,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         }
     };
 
+    //退出时保存当前播放歌曲与位置。
     @Override
     protected void onDestroy(){
         if(playerBinder.isEverPlayed()){
@@ -327,6 +337,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         super.onDestroy();
     }
 
+    //转后台时进入前台服务。
     @Override
     protected void onPause(){
         super.onPause();
@@ -335,6 +346,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         }
     }
 
+    //转前台时取消前台服务。
     @Override
     protected void onResume(){
         super.onResume();
@@ -343,6 +355,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         }
     }
 
+    //用于Android6.0以上系统获取运行时权限。
     @Override
     public void onRequestPermissionsResult(int requestCode,String[] permissions,int[] grantResults){
         switch (requestCode){

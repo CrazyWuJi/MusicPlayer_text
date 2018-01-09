@@ -24,10 +24,12 @@ public class MusicLyricFragment extends Fragment{
         return view;
     }
 
+    //返回歌词组件实例用于更新歌词List<String>。
     public WordView getview(){
         return (WordView)view.findViewById(R.id.text);
     }
 
+    //测试BUG时用。
     public void show(Context context){
         Toast.makeText(context,"Success!",Toast.LENGTH_SHORT).show();
     }

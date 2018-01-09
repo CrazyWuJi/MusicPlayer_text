@@ -44,6 +44,7 @@ public class WordView extends android.support.v7.widget.AppCompatTextView {
         init();
     }
 
+    //绘制歌词。
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -85,6 +86,7 @@ public class WordView extends android.support.v7.widget.AppCompatTextView {
         //mIndex++;
     }
 
+    //onDraw被调用前被调用。
     @Override
     protected void onSizeChanged(int w, int h, int ow, int oh) {
         super.onSizeChanged(w, h, ow, oh);

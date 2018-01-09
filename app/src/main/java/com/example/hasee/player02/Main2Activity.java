@@ -44,6 +44,7 @@ public class Main2Activity extends AppCompatActivity {
     public List<musicList_Item> musicList_items=new ArrayList<>();
     private Handler mHandler;
 
+    //获取组件实例。
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -96,6 +97,7 @@ public class Main2Activity extends AppCompatActivity {
         };
     }
 
+    //显示歌曲列表。
     protected void showList(){
         try {
             /*tos.setText("showList");
@@ -114,7 +116,7 @@ public class Main2Activity extends AppCompatActivity {
             }
             updataListView();
 
-            for(musicList_Item mu:musicList_items){
+            /*for(musicList_Item mu:musicList_items){
                 uri=Uri.parse(mu.getUri());
                 MediaMetadataRetriever mmr=new MediaMetadataRetriever();
                 mmr.setDataSource(this,uri);
@@ -125,15 +127,15 @@ public class Main2Activity extends AppCompatActivity {
             }
             adapter=new musicAdapter(this,R.layout.music_item,musicList_items);
             musicList.setAdapter(adapter);
-            adapter.notifyDataSetChanged();
+            adapter.notifyDataSetChanged();*/
 
-            /*new Thread(new Runnable() {
+            new Thread(new Runnable() {
                 @Override
                 public void run() {
                     updataMusicPic();
                     mHandler.sendEmptyMessage(0);
                 }
-            }).start();*/
+            }).start();
         }catch (Exception e){
             Log.d("Main2Activity",e.toString());
             tos.setText(e.toString());
@@ -141,12 +143,14 @@ public class Main2Activity extends AppCompatActivity {
         }
     }
 
+    //更新歌曲列表。
     public void updataListView(){
         adapter=new musicAdapter(this,R.layout.music_item,musicList_items);
         musicList.setAdapter(adapter);
         adapter.notifyDataSetChanged();
     }
 
+    //更新歌曲专辑图。
     public void updataMusicPic(){
         try {
             for(musicList_Item mu:musicList_items){
@@ -169,6 +173,7 @@ public class Main2Activity extends AppCompatActivity {
 
     }
 
+    //回调方法获取要添加的歌曲路径。
     @Override
     protected void onActivityResult(int reqCode,int resCode,Intent intent){
         super.onActivityResult(reqCode,resCode,intent);

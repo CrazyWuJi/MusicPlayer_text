@@ -28,11 +28,13 @@ public class musicAdapter extends ArrayAdapter<musicList_Item>{
     //private Uri uri;
     //private MediaMetadataRetriever mmr;
 
+    //构造方法，获取musicList_item实例List<>。
     public musicAdapter(Context context, int textViewResourceId, List<musicList_Item> object){
         super(context,textViewResourceId,object);
         resourceId=textViewResourceId;
     }
 
+    //将musicList_item实例内容更新到ListView。
     @Override
     public View getView(int position, View convertView, ViewGroup parent){
         musicList_Item musiclist=getItem(position);
