@@ -1,5 +1,6 @@
 package com.example.hasee.player02;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -8,6 +9,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -54,10 +56,28 @@ public class Main2Activity extends AppCompatActivity {
         musicList.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
-                MusicList musicSelected=musicLists.get(i);
+                final int ii=i;
+                AlertDialog.Builder dialog=new AlertDialog.Builder(Main2Activity.this);
+                dialog.setTitle("警告");
+                dialog.setMessage("确定要删除 "+musicLists.get(i).getTitle()+" 吗？");
+                dialog.setCancelable(false);
+                dialog.setPositiveButton("是", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        DeletMusicList(ii);
+                    }
+                });
+                dialog.setNegativeButton("否", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+
+                    }
+                });
+                dialog.show();
+                /*MusicList musicSelected=musicLists.get(i);
                 String uri=musicSelected.getUri();
                 DataSupport.deleteAll(MusicList.class,"uri=?",uri);
-                showList();
+                showList();*/
                 return true;
             }
         });
@@ -95,6 +115,13 @@ public class Main2Activity extends AppCompatActivity {
                 }
             }
         };
+    }
+
+    public void DeletMusicList(int ii){
+        MusicList musicSelected=musicLists.get(ii);
+        String uri=musicSelected.getUri();
+        DataSupport.deleteAll(MusicList.class,"uri=?",uri);
+        showList();
     }
 
     //显示歌曲列表。

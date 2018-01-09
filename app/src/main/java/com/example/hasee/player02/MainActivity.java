@@ -67,7 +67,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     LrcHandle lrcHandle;
     WordView mWordView;
 
-    //首次启动互动时调用，用于获取各个组件实例与开启后台服务。
+    //首次启动活动时调用，用于获取各个组件实例与开启后台服务。
     @SuppressLint("SdCardPath")
 
     @Override
