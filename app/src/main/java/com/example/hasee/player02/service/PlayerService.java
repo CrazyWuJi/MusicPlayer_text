@@ -46,6 +46,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
     private PlayerListener_Service playerListener_service;
     private Handler mHander;
     private List<Integer> mTimeList;
+    public Toast tos;
     public Bitmap musicPic;
     public WordView mWordView;
     public int mIndex=0;
@@ -53,6 +54,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
 
     @Override
     public void onCreate(){
+        tos=Toast.makeText(PlayerService.this,"",Toast.LENGTH_SHORT);
         mper=new MediaPlayer();
         timer=new Timer();
         //Toast.makeText(this,"创建完成",Toast.LENGTH_SHORT).show();
@@ -233,8 +235,14 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         NotificationCompat.Builder builder=new NotificationCompat.Builder(this);
         builder.setSmallIcon(R.mipmap.ic_launcher);
         builder.setLargeIcon(BitmapFactory.decodeResource(getResources(),R.mipmap.logo));
-        builder.setContentTitle(title);
-        builder.setContentText(String.valueOf(mper.getCurrentPosition()/1000)+"/"+String.valueOf(mper.getDuration()/1000));
+        builder.setContentTitle("当前播放："+title);
+        if(isPrepared){
+            int current=mper.getCurrentPosition()/1000;
+            int duration=mper.getDuration()/1000;
+            builder.setContentText(String.format("%02d:%02d/%02d:%02d",current/60,current-60*(current/60),duration/60,duration-60*(duration/60)));
+        }else{
+            builder.setContentText(String.valueOf("00:00")+"/"+String.valueOf("00:00"));
+        }
         builder.setProgress(mper.getDuration(),mper.getCurrentPosition(),false);
         builder.setContentIntent(pi);
         builder.setAutoCancel(true);
@@ -278,9 +286,13 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
             Looping=b;
             mper.setLooping(b);
             if(b){
-                Toast.makeText(context,"单曲循环",Toast.LENGTH_SHORT).show();
+                tos.setText("单曲循环");
+                tos.show();
+                //Toast.makeText(context,"单曲循环",Toast.LENGTH_SHORT).show();
             }else{
-                Toast.makeText(context,"列表循环",Toast.LENGTH_SHORT).show();
+                tos.setText("列表循环");
+                tos.show();
+                //Toast.makeText(context,"列表循环",Toast.LENGTH_SHORT).show();
             }
         }
         public int getPregress(){

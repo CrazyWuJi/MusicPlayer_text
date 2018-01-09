@@ -268,7 +268,9 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
             if(!isSeekBarChanging){
                 musicProgress_seekbar.setProgress(progress);
             }
-            musicProgress_text.setText(String.valueOf(progress/1000)+"/"+String.valueOf(duration/1000));
+            int temppro=progress/1000;
+            int tempdur=duration/1000;
+            musicProgress_text.setText(String.format("%02d:%02d/%02d:%02d",temppro/60,temppro-60*(temppro/60),tempdur/60,tempdur-60*(tempdur/60)));
         }
         @Override
         public void setTitle(String title) {

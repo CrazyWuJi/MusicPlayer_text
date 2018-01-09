@@ -114,7 +114,7 @@ public class Main2Activity extends AppCompatActivity {
             }
             updataListView();
 
-            /*for(musicList_Item mu:musicList_items){
+            for(musicList_Item mu:musicList_items){
                 uri=Uri.parse(mu.getUri());
                 MediaMetadataRetriever mmr=new MediaMetadataRetriever();
                 mmr.setDataSource(this,uri);
@@ -125,15 +125,15 @@ public class Main2Activity extends AppCompatActivity {
             }
             adapter=new musicAdapter(this,R.layout.music_item,musicList_items);
             musicList.setAdapter(adapter);
-            adapter.notifyDataSetChanged();*/
+            adapter.notifyDataSetChanged();
 
-            new Thread(new Runnable() {
+            /*new Thread(new Runnable() {
                 @Override
                 public void run() {
                     updataMusicPic();
                     mHandler.sendEmptyMessage(0);
                 }
-            }).start();
+            }).start();*/
         }catch (Exception e){
             Log.d("Main2Activity",e.toString());
             tos.setText(e.toString());
