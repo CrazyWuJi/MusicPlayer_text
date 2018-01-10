@@ -1,5 +1,6 @@
 将歌词文件以“歌曲名.lrc”文件名形式放到“手机存储/Download”目录下。
 
+此代码实时更新，最新代码可在：https://github.com/CrazyWuJi/MusicPlayer_text  中查看。
 
 
 注意：

@@ -91,7 +91,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                 startActivityForResult(intent,100);
             }
         });
-        musicPic=(ImageView)findViewById(R.id.musicPic);
+        //musicPic=(ImageView)findViewById(R.id.musicPic);
         frameLayout=(FrameLayout)findViewById(R.id.Main_Fragment);
         frameLayout.setOnClickListener(new View.OnClickListener() {
             @Override

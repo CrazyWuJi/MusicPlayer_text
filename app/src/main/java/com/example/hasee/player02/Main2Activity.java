@@ -6,24 +6,24 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
-import android.view.accessibility.AccessibilityManager;
-import android.webkit.WebView;
-import android.widget.AdapterView;
-import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.ListView;
+import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.hasee.player02.Adapter.musicAdapter;
 import com.example.hasee.player02.Adapter.musicList_Item;
 import com.example.hasee.player02.db.MusicList;
 
@@ -31,19 +31,19 @@ import org.litepal.crud.DataSupport;
 import org.litepal.tablemanager.Connector;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 public class Main2Activity extends AppCompatActivity {
 
-    ImageButton addMusic;
     Toast tos;
     public Uri uri;
-    public ListView musicList;
-    public musicAdapter adapter;
     public List<MusicList> musicLists=new ArrayList<>();
     public List<musicList_Item> musicList_items=new ArrayList<>();
+    RecyclerView recyclerView;
+    LinearLayoutManager layoutManager;
+    musicRecycleAdapter adapter;
     private Handler mHandler;
 
     //获取组件实例。
@@ -51,58 +51,19 @@ public class Main2Activity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main2);
-        addMusic=(ImageButton)findViewById(R.id.addMusic);
-        musicList=(ListView)findViewById(R.id.musicList);
-        musicList.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
-                final int ii=i;
-                AlertDialog.Builder dialog=new AlertDialog.Builder(Main2Activity.this);
-                dialog.setTitle("警告");
-                dialog.setMessage("确定要删除 "+musicLists.get(i).getTitle()+" 吗？");
-                dialog.setCancelable(false);
-                dialog.setPositiveButton("是", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        DeletMusicList(ii);
-                    }
-                });
-                dialog.setNegativeButton("否", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-
-                    }
-                });
-                dialog.show();
-                /*MusicList musicSelected=musicLists.get(i);
-                String uri=musicSelected.getUri();
-                DataSupport.deleteAll(MusicList.class,"uri=?",uri);
-                showList();*/
-                return true;
-            }
-        });
-        musicList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Intent intent=new Intent();
-                intent.putExtra("SelectedLine",i);
-                setResult(RESULT_OK,intent);
-                finish();
-            }
-        });
-        tos=Toast.makeText(this,"",Toast.LENGTH_SHORT);
-        /*tos.setText("1 准备完成！");
-        tos.show();*/
+        Toolbar toolbar=(Toolbar)findViewById(R.id.toolbar);
+        toolbar.setTitle("音乐列表");
+        setSupportActionBar(toolbar);
+        ActionBar actionBar=getSupportActionBar();
+        if(actionBar!=null){
+            actionBar.setDisplayHomeAsUpEnabled(true);
+        }
+        recyclerView=(RecyclerView)findViewById(R.id.musicList);
+        layoutManager=new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(layoutManager);
+        adapter=new musicRecycleAdapter(musicList_items);
         showList();
-        addMusic.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Connector.getDatabase();
-                Intent intent=new Intent(Intent.ACTION_GET_CONTENT);
-                intent.setType("audio/*");
-                startActivityForResult(intent,100);
-            }
-        });
+        tos=Toast.makeText(this,"",Toast.LENGTH_SHORT);
         mHandler=new Handler(){
             @Override
             public void handleMessage(Message msg){
@@ -117,21 +78,57 @@ public class Main2Activity extends AppCompatActivity {
         };
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu){
+        getMenuInflater().inflate(R.menu.toolbar,menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+        switch (item.getItemId()){
+            case R.id.add:
+                Connector.getDatabase();
+                Intent intent=new Intent(Intent.ACTION_GET_CONTENT);
+                intent.setType("audio/*");
+                startActivityForResult(intent,100);
+                break;
+            case android.R.id.home:
+                finish();
+                break;
+        }
+        return true;
+    }
+
     public void DeletMusicList(int ii){
-        MusicList musicSelected=musicLists.get(ii);
-        String uri=musicSelected.getUri();
-        DataSupport.deleteAll(MusicList.class,"uri=?",uri);
-        showList();
+        final int po=ii;
+        AlertDialog.Builder dialog=new AlertDialog.Builder(Main2Activity.this);
+        dialog.setTitle("警告");
+        dialog.setMessage("确定要删除 "+musicLists.get(po).getTitle()+" 吗？");
+        dialog.setCancelable(false);
+        dialog.setPositiveButton("是", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                MusicList musicSelected=musicLists.get(po);
+                String uri=musicSelected.getUri();
+                DataSupport.deleteAll(MusicList.class,"uri=?",uri);
+                showList();
+            }
+        });
+        dialog.setNegativeButton("否", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+
+            }
+        });
+        dialog.show();
     }
 
     //显示歌曲列表。
     protected void showList(){
         try {
-            /*tos.setText("showList");
-            tos.show();*/
             musicLists.clear();
             musicList_items.clear();
-            //List<musicList_Item> musicList_items=new ArrayList<>();
             musicLists=DataSupport.findAll(MusicList.class);
             for(MusicList music:musicLists){
                 musicList_Item musicList_item=new musicList_Item();
@@ -152,9 +149,7 @@ public class Main2Activity extends AppCompatActivity {
                 mu.setBitmap(bitmap);
                 mmr.release();
             }
-            adapter=new musicAdapter(this,R.layout.music_item,musicList_items);
-            musicList.setAdapter(adapter);
-            adapter.notifyDataSetChanged();*/
+            updataListView();*/
 
             new Thread(new Runnable() {
                 @Override
@@ -166,15 +161,13 @@ public class Main2Activity extends AppCompatActivity {
         }catch (Exception e){
             Log.d("Main2Activity",e.toString());
             tos.setText(e.toString());
-            //tos.show();
+            tos.show();
         }
     }
 
     //更新歌曲列表。
     public void updataListView(){
-        adapter=new musicAdapter(this,R.layout.music_item,musicList_items);
-        musicList.setAdapter(adapter);
-        adapter.notifyDataSetChanged();
+        recyclerView.setAdapter(adapter);
     }
 
     //更新歌曲专辑图。
@@ -237,5 +230,69 @@ public class Main2Activity extends AppCompatActivity {
         }
     }
 
+    public void backTomain(int ii){
+        Intent intent=new Intent();
+        intent.putExtra("SelectedLine",ii);
+        setResult(RESULT_OK,intent);
+        finish();
+    }
 
+
+    class musicRecycleAdapter extends RecyclerView.Adapter<musicRecycleAdapter.ViewHolder>{
+
+        private List<musicList_Item> musicList;
+
+        class ViewHolder extends RecyclerView.ViewHolder{
+            View musicListview;
+            CircleImageView circleMusicPic;
+            TextView musicTitle,musicArtist;
+
+            public ViewHolder(View itemView) {
+                super(itemView);
+                musicListview=itemView;
+                circleMusicPic=(CircleImageView)itemView.findViewById(R.id.circleMusicpic);
+                musicTitle=(TextView)itemView.findViewById(R.id.musicTitle);
+                musicArtist=(TextView)itemView.findViewById(R.id.singerAndduration);
+            }
+        }
+
+        public musicRecycleAdapter(List<musicList_Item> list){
+            musicList=list;
+        }
+
+        @Override
+        public musicRecycleAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            View view= LayoutInflater.from(parent.getContext()).inflate(R.layout.music_item,parent,false);
+            final musicRecycleAdapter.ViewHolder holder=new musicRecycleAdapter.ViewHolder(view);
+            view.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View view) {
+                    Main2Activity.this.DeletMusicList(holder.getAdapterPosition());
+                    return true;
+                }
+            });
+            view.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Main2Activity.this.backTomain(holder.getAdapterPosition());
+                }
+            });
+            return holder;
+        }
+
+        @Override
+        public void onBindViewHolder(musicRecycleAdapter.ViewHolder holder, int position) {
+            musicList_Item item=musicList.get(position);
+            holder.circleMusicPic.setImageBitmap(item.getBitmap());
+            holder.musicTitle.setText(item.getTitle());
+            int dura=Integer.parseInt(item.getDuration())/1000;
+            holder.musicArtist.setText(item.getArtist()+"  ·  "+String.format("%02d:%02d",dura/60,dura-60*(dura/60)));
+        }
+
+        @Override
+        public int getItemCount() {
+            return musicList.size();
+        }
+
+    }
 }

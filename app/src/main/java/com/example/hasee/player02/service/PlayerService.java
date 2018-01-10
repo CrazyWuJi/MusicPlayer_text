@@ -133,6 +133,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         int counter=DataSupport.count(MusicList.class);
         if(counter<=0){
             Toast.makeText(PlayerService.this,"列表为空",Toast.LENGTH_SHORT).show();
+            mper.reset();
             number=0;
         }else{
             if(number+1>=counter){
@@ -155,6 +156,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         int counter=DataSupport.count(MusicList.class);
         if(counter<=0){
             Toast.makeText(PlayerService.this,"列表为空",Toast.LENGTH_SHORT).show();
+            mper.reset();
             number=0;
         }else{
             if(number-1<0){
