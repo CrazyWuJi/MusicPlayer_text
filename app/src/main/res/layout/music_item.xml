@@ -48,12 +48,14 @@
                 android:text="歌手·时长"
                 android:textSize="14sp" />
         </LinearLayout>
+
     </LinearLayout>
 
     <ImageView
         android:id="@+id/imageView"
         android:layout_width="match_parent"
         android:layout_height="1dp"
+        android:layout_weight="1"
         app:srcCompat="@android:color/darker_gray" />
 
 

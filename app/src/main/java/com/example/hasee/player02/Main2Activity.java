@@ -12,6 +12,8 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -61,6 +63,7 @@ public class Main2Activity extends AppCompatActivity {
         recyclerView=(RecyclerView)findViewById(R.id.musicList);
         layoutManager=new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
         adapter=new musicRecycleAdapter(musicList_items);
         showList();
         tos=Toast.makeText(this,"",Toast.LENGTH_SHORT);
@@ -112,7 +115,11 @@ public class Main2Activity extends AppCompatActivity {
                 MusicList musicSelected=musicLists.get(po);
                 String uri=musicSelected.getUri();
                 DataSupport.deleteAll(MusicList.class,"uri=?",uri);
-                showList();
+                //Toast.makeText(Main2Activity.this,String.valueOf(DataSupport.count(MusicList.class))+"  "+String.valueOf(po),Toast.LENGTH_SHORT).show();
+                musicLists.remove(po);
+                musicList_items.remove(po);
+                adapter.notifyItemRemoved(po);
+                //showList();
             }
         });
         dialog.setNegativeButton("否", new DialogInterface.OnClickListener() {
@@ -122,6 +129,12 @@ public class Main2Activity extends AppCompatActivity {
             }
         });
         dialog.show();
+    }
+
+    public void addMusiclist(MusicList e,musicList_Item o,int po){
+        musicLists.add(e);
+        musicList_items.add(o);
+        adapter.notifyItemInserted(po);
     }
 
     //显示歌曲列表。
@@ -206,22 +219,28 @@ public class Main2Activity extends AppCompatActivity {
             }else {
                 try {
                     MusicList musicSelcted=new MusicList();
+                    musicList_Item musicList_item=new musicList_Item();
                     musicSelcted.setUri(uri.toString());
                     MediaMetadataRetriever mmr=new MediaMetadataRetriever();
                     mmr.setDataSource(this,uri);
                     String titleString=mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
                     String artistString=mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
                     String durationString=mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
-                    mmr.release();
-                    /*TextView txv=(TextView)findViewById(R.id.title_main);
-                    txv.setText(titleString);
-                    tos.setText(titleString);
-                    tos.show();*/
+                    byte[] embedPic=mmr.getEmbeddedPicture();
+                    Bitmap bitmap= BitmapFactory.decodeByteArray(embedPic,0,embedPic.length);
+
+
                     musicSelcted.setTitle(titleString);
                     musicSelcted.setArtist(artistString);
                     musicSelcted.setDuration(durationString);
+                    musicList_item.setTitle(titleString);
+                    musicList_item.setArtist(artistString);
+                    musicList_item.setDuration(durationString);
+                    musicList_item.setUri(uri.toString());
+                    musicList_item.setBitmap(bitmap);
+                    addMusiclist(musicSelcted,musicList_item,musicList_items.size());
                     musicSelcted.save();
-                    showList();
+                    //showList();
                 }catch (Exception e){
                     Log.d("Main2Activity",e.toString());
                     Toast.makeText(Main2Activity.this,e.toString(),Toast.LENGTH_SHORT).show();
