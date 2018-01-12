@@ -29,10 +29,9 @@ public class LrcHandle {
             mWords.clear();
             mTimeList.clear();
             File file = new File(path);
-
             FileInputStream fileInputStream = new FileInputStream(file);
             InputStreamReader inputStreamReader = new InputStreamReader(
-                    fileInputStream, "utf-8");
+                    fileInputStream,"utf-8");
             BufferedReader bufferedReader = new BufferedReader(
                     inputStreamReader);
             String s = "";

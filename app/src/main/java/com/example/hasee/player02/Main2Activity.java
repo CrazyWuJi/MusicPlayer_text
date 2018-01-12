@@ -2,12 +2,15 @@ package com.example.hasee.player02;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.MediaStore;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -23,15 +26,21 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.hasee.player02.Adapter.musicList_Item;
+import com.example.hasee.player02.PopupWindow.moreMusicinfo;
 import com.example.hasee.player02.db.MusicList;
 
 import org.litepal.crud.DataSupport;
 import org.litepal.tablemanager.Connector;
 
+import java.io.File;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,12 +50,14 @@ public class Main2Activity extends AppCompatActivity {
 
     Toast tos;
     public Uri uri;
+    public int i;
     public List<MusicList> musicLists=new ArrayList<>();
     public List<musicList_Item> musicList_items=new ArrayList<>();
     RecyclerView recyclerView;
     LinearLayoutManager layoutManager;
     musicRecycleAdapter adapter;
     private Handler mHandler;
+    private moreMusicinfo moreInfo_pop;
 
     //获取组件实例。
     @Override
@@ -64,9 +75,11 @@ public class Main2Activity extends AppCompatActivity {
         layoutManager=new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
+        recyclerView.addItemDecoration(new DividerItemDecoration(this,DividerItemDecoration.VERTICAL));
         adapter=new musicRecycleAdapter(musicList_items);
         showList();
         tos=Toast.makeText(this,"",Toast.LENGTH_SHORT);
+        moreInfo_pop=new moreMusicinfo(Main2Activity.this);
         mHandler=new Handler(){
             @Override
             public void handleMessage(Message msg){
@@ -164,13 +177,13 @@ public class Main2Activity extends AppCompatActivity {
             }
             updataListView();*/
 
-            new Thread(new Runnable() {
+            /*new Thread(new Runnable() {
                 @Override
                 public void run() {
                     updataMusicPic();
                     mHandler.sendEmptyMessage(0);
                 }
-            }).start();
+            }).start();*/
         }catch (Exception e){
             Log.d("Main2Activity",e.toString());
             tos.setText(e.toString());
@@ -188,7 +201,7 @@ public class Main2Activity extends AppCompatActivity {
         try {
             for(musicList_Item mu:musicList_items){
                 uri=Uri.parse(mu.getUri());
-                if(mu.getTitle()!=null){
+                if(!mu.getArtist().equals("无")){
                     MediaMetadataRetriever mmr=new MediaMetadataRetriever();
                     mmr.setDataSource(Main2Activity.this,uri);
                     byte[] embedPic=mmr.getEmbeddedPicture();
@@ -196,7 +209,9 @@ public class Main2Activity extends AppCompatActivity {
                     mu.setBitmap(bitmap);
                     mmr.release();
                 }else{
-                    mu.setTitle(String.valueOf(uri.getLastPathSegment()));
+                    /*mu.setTitle(String.valueOf(uri.getLastPathSegment()));
+                    mu.setArtist("无");
+                    mu.setDuration(String.valueOf(0));*/
                 }
             }
         }catch (Exception e){
@@ -206,12 +221,69 @@ public class Main2Activity extends AppCompatActivity {
 
     }
 
+    private void showPopupWindow(View view, final int position){
+        moreInfo_pop.showAsDropDown(view);
+        ListView listView=moreInfo_pop.getListView();
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                moreInfo_pop.dismiss();
+                if(i==1){
+                    //Toast.makeText(Main2Activity.this,"删除歌曲",Toast.LENGTH_SHORT).show();
+                    DeletMusicList(position);
+                }
+            }
+        });
+    }
+
+    private void getUriData(){
+        Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+        String[] projection = {"_data","_display_name","_size","mime_type","title","duration"};
+        Cursor cursor = getContentResolver().query(uri, projection, null, null, null);
+        cursor.moveToFirst();
+        String[] colums=cursor.getColumnNames();
+        System.out.println(uri);
+        System.out.println(uri.getPath());
+        for (String string:colums){
+            System.out.println(cursor.getColumnIndex(string)+"="+string);
+        }
+        System.out.println(cursor.getCount());
+        do {
+            System.out.println("_data = "+cursor.getString(cursor.getColumnIndex("_data")));
+            System.out.println("_display_name = "+cursor.getString(cursor.getColumnIndex("_display_name")));
+            System.out.println("_size = "+cursor.getString(cursor.getColumnIndex("_size")));
+            System.out.println("mime_type = "+cursor.getString(cursor.getColumnIndex("mime_type")));
+            System.out.println("title = "+cursor.getString(cursor.getColumnIndex("title")));
+            System.out.println("duration = "+cursor.getString(cursor.getColumnIndex("duration")));
+        } while (cursor.moveToNext());
+    }
+
+    private void getPath(Uri uri) {
+        String[] projection = {MediaStore.Audio.Media.DATA};
+        Cursor cursor = getContentResolver().query(uri, projection, null, null, null);
+        int column_index = cursor
+                .getColumnIndexOrThrow(MediaStore.Audio.Media.DATA);
+        cursor.moveToFirst();
+        String[] colums=cursor.getColumnNames();
+        System.out.println(uri.getPath());
+        for (String string:colums){
+            System.out.println(cursor.getColumnIndex(string)+"="+string);
+        }
+        cursor.moveToFirst();
+        do {
+            System.out.println("_data = "+cursor.getString(cursor.getColumnIndexOrThrow("_data")));
+        }while(cursor.moveToNext());
+    }
+
     //回调方法获取要添加的歌曲路径。
     @Override
     protected void onActivityResult(int reqCode,int resCode,Intent intent){
         super.onActivityResult(reqCode,resCode,intent);
         if(resCode==RESULT_OK){
             uri=intent.getData();
+            getUriData();
+            getPath(uri);
+            Toast.makeText(Main2Activity.this,uri.toString(),Toast.LENGTH_SHORT).show();
             List<MusicList> findMusic=DataSupport.select("uri").where("uri=?",uri.toString()).find(MusicList.class);
             if(!findMusic.isEmpty()){
                 tos.setText("歌曲已存在");
@@ -223,27 +295,36 @@ public class Main2Activity extends AppCompatActivity {
                     musicSelcted.setUri(uri.toString());
                     MediaMetadataRetriever mmr=new MediaMetadataRetriever();
                     mmr.setDataSource(this,uri);
-                    String titleString=mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
-                    String artistString=mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
-                    String durationString=mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
-                    byte[] embedPic=mmr.getEmbeddedPicture();
-                    Bitmap bitmap= BitmapFactory.decodeByteArray(embedPic,0,embedPic.length);
+                    if(mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE)==null){
+                        musicSelcted.setTitle(uri.getLastPathSegment());
+                        musicSelcted.setArtist("无");
+                        musicSelcted.setDuration(mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION));
+                        musicList_item.setTitle(uri.getLastPathSegment());
+                        musicList_item.setArtist("无");
+                        musicList_item.setDuration(mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION));
+                        musicList_item.setUri(uri.toString());
+                    }else{
+                        String titleString=mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+                        String artistString=mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
+                        String durationString=mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+                        byte[] embedPic=mmr.getEmbeddedPicture();
+                        Bitmap bitmap= BitmapFactory.decodeByteArray(embedPic,0,embedPic.length);
 
-
-                    musicSelcted.setTitle(titleString);
-                    musicSelcted.setArtist(artistString);
-                    musicSelcted.setDuration(durationString);
-                    musicList_item.setTitle(titleString);
-                    musicList_item.setArtist(artistString);
-                    musicList_item.setDuration(durationString);
-                    musicList_item.setUri(uri.toString());
-                    musicList_item.setBitmap(bitmap);
+                        musicSelcted.setTitle(titleString);
+                        musicSelcted.setArtist(artistString);
+                        musicSelcted.setDuration(durationString);
+                        musicList_item.setTitle(titleString);
+                        musicList_item.setArtist(artistString);
+                        musicList_item.setDuration(durationString);
+                        musicList_item.setUri(uri.toString());
+                        musicList_item.setBitmap(bitmap);
+                    }
                     addMusiclist(musicSelcted,musicList_item,musicList_items.size());
                     musicSelcted.save();
                     //showList();
                 }catch (Exception e){
                     Log.d("Main2Activity",e.toString());
-                    Toast.makeText(Main2Activity.this,e.toString(),Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(Main2Activity.this,e.toString(),Toast.LENGTH_SHORT).show();
                 }
             }
         }
@@ -265,6 +346,7 @@ public class Main2Activity extends AppCompatActivity {
             View musicListview;
             CircleImageView circleMusicPic;
             TextView musicTitle,musicArtist;
+            ImageView musicInfo;
 
             public ViewHolder(View itemView) {
                 super(itemView);
@@ -272,6 +354,7 @@ public class Main2Activity extends AppCompatActivity {
                 circleMusicPic=(CircleImageView)itemView.findViewById(R.id.circleMusicpic);
                 musicTitle=(TextView)itemView.findViewById(R.id.musicTitle);
                 musicArtist=(TextView)itemView.findViewById(R.id.singerAndduration);
+                musicInfo=(ImageView)itemView.findViewById(R.id.moreInfo);
             }
         }
 
@@ -294,6 +377,13 @@ public class Main2Activity extends AppCompatActivity {
                 @Override
                 public void onClick(View view) {
                     Main2Activity.this.backTomain(holder.getAdapterPosition());
+                }
+            });
+            holder.musicInfo.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Main2Activity.this.showPopupWindow(view,holder.getAdapterPosition());
+                    //Toast.makeText(Main2Activity.this,"更多信息",Toast.LENGTH_SHORT).show();
                 }
             });
             return holder;

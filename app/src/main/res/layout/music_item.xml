@@ -27,11 +27,13 @@
             android:layout_height="55dp"
             android:layout_marginBottom="1dp"
             android:layout_marginLeft="5dp"
-            app:srcCompat="@android:color/holo_blue_light" />
+            android:background="@drawable/ic_audiotrack_light"
+            app:srcCompat="@drawable/ic_audiotrack_light" />
 
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"
+            android:layout_weight="1"
             android:gravity="left|center_vertical"
             android:orientation="vertical">
 
@@ -57,13 +59,16 @@
                 android:textSize="14sp" />
         </LinearLayout>
 
+        <ImageButton
+            android:id="@+id/moreInfo"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_gravity="bottom"
+            android:background="@android:drawable/ic_menu_more" />
+
     </LinearLayout>
 
-    <ImageView
-        android:id="@+id/imageView"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        app:srcCompat="@android:color/darker_gray" />
+
 
 
 </LinearLayout>
