@@ -216,10 +216,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
                 mper.prepareAsync();
 
                 mmr.setDataSource(PlayerService.this,uri);
-                musicName=mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
-                if(musicName==null){
-                    musicName=uri.getLastPathSegment();
-                }
+                musicName=musicSelected.getTitle();
                 byte[] embedPic=mmr.getEmbeddedPicture();
                 if(embedPic==null){
                     musicPic=null;

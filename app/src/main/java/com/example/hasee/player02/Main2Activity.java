@@ -228,12 +228,28 @@ public class Main2Activity extends AppCompatActivity {
     }
 
     private void showPopupWindow(View view, final int position){
-        moreInfo_pop.showAsDropDown(view);
+        moreInfo_pop.showAsDropDown(view,10,10);
         ListView listView=moreInfo_pop.getListView();
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 moreInfo_pop.dismiss();
+                if(i==0){
+                    List<MusicList> musicLists=DataSupport.findAll(MusicList.class);
+                    MusicList selectedMusic=musicLists.get(position);
+                    CustomDialog.Builder builder=new CustomDialog.Builder(Main2Activity.this);
+                    builder.setTitle("详细信息");
+                    Float aFloat=Float.parseFloat(selectedMusic.getSize())/(1024*1024);
+                    String size=String.format("%.2f",aFloat);
+                    builder.setMessage("文件名称："+selectedMusic.getFileName()+"\n"+"文件地址："+selectedMusic.getUri()+"\n"+"文件大小："+size+" MB");
+                    builder.setPositiveButton("确认", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            dialogInterface.dismiss();
+                        }
+                    });
+                    builder.create().show();
+                }
                 if(i==1){
                     //Toast.makeText(Main2Activity.this,"删除歌曲",Toast.LENGTH_SHORT).show();
                     DeletMusicList(position);
@@ -246,21 +262,23 @@ public class Main2Activity extends AppCompatActivity {
     private void RefreshMusicList(){
         Uri uri=MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
         String[] ss={"MediaStore.Audio.Media.ARTIST"};
-        String[] projection = {"_data","_display_name","_size","mime_type","title","duration"};
+        String[] projection = {"_data","_display_name","_size","mime_type","title","duration","artist"};
         Cursor cursor = getContentResolver().query(uri, projection, null, null, null);
         cursor.moveToFirst();
         do{
             String path=cursor.getString(cursor.getColumnIndexOrThrow("_data"));
             List<MusicList> findMusic=DataSupport.select("uri").where("uri=?",path).find(MusicList.class);
             if(findMusic.isEmpty()){
-                MusicList musicList=new MusicList();
-                musicList.setUri(cursor.getString(cursor.getColumnIndexOrThrow("_data")));
-                musicList.setTitle(cursor.getString(cursor.getColumnIndexOrThrow("title")));
-                musicList.setDuration(cursor.getString(cursor.getColumnIndexOrThrow("duration")));
-                musicList.setSize(cursor.getString(cursor.getColumnIndexOrThrow("_size")));
-                musicList.setFileName(cursor.getString(cursor.getColumnIndexOrThrow("_display_name")));
-                musicList.setArtist("无");
-                musicList.save();
+                if((Integer.parseInt(cursor.getString(cursor.getColumnIndexOrThrow("duration"))))>=1000){
+                    MusicList musicList=new MusicList();
+                    musicList.setUri(cursor.getString(cursor.getColumnIndexOrThrow("_data")));
+                    musicList.setTitle(cursor.getString(cursor.getColumnIndexOrThrow("title")));
+                    musicList.setDuration(cursor.getString(cursor.getColumnIndexOrThrow("duration")));
+                    musicList.setSize(cursor.getString(cursor.getColumnIndexOrThrow("_size")));
+                    musicList.setFileName(cursor.getString(cursor.getColumnIndexOrThrow("_display_name")));
+                    musicList.setArtist(cursor.getString(cursor.getColumnIndexOrThrow("artist")));
+                    musicList.save();
+                }
             }
         }while(cursor.moveToNext());
         cursor.close();
