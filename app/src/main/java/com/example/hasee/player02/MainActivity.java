@@ -180,9 +180,13 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                         MediaMetadataRetriever mmr=new MediaMetadataRetriever();
                         mmr.setDataSource(MainActivity.this, Uri.parse(selectedMusic.getUri()));
                         byte[] embedPic=mmr.getEmbeddedPicture();
-                        Bitmap bitmap= BitmapFactory.decodeByteArray(embedPic,0,embedPic.length);
-                        musicPicFragment.changeMuiscpic(bitmap);
-                        String titleString=mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+                        if(embedPic!=null){
+                            Bitmap bitmap= BitmapFactory.decodeByteArray(embedPic,0,embedPic.length);
+                            musicPicFragment.changeMuiscpic(bitmap);
+                        }else{
+                            musicPicFragment.changesMusicPicByDrawable(this.getResources().getDrawable(R.mipmap.logo));
+                        }
+                        String titleString=selectedMusic.getTitle();
                         Title_Main.setText(titleString);
                         playerBinder.setDataNumber(SelectedNumber,MainActivity.this);
                         //initLrcHanle_forall(mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE));
@@ -291,7 +295,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         @Override
         public void setMusicPic(Bitmap bitmap) {
             if(bitmap==null){
-                musicPicFragment.changesMusicPicByResource(android.R.color.darker_gray);
+                musicPicFragment.changesMusicPicByDrawable(MainActivity.this.getResources().getDrawable(R.mipmap.logo));
             }else{
                 musicPicFragment.changeMuiscpic(bitmap);
             }

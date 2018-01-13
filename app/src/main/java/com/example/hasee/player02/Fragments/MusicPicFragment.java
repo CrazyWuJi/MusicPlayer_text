@@ -1,6 +1,7 @@
 package com.example.hasee.player02.Fragments;
 
 import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.support.v4.app.Fragment;
@@ -30,8 +31,8 @@ public class MusicPicFragment extends Fragment{
         imageView.setImageBitmap(bitmap);
     }
 
-    public void changesMusicPicByResource(int ss){
+    public void changesMusicPicByDrawable(Drawable drawable){
         ImageView imageView=(ImageView)view.findViewById(R.id.MusicPicView);
-        imageView.setImageResource(ss);
+        imageView.setImageDrawable(drawable);
     }
 }

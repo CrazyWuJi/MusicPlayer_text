@@ -77,6 +77,7 @@ public class Main2Activity extends AppCompatActivity {
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.addItemDecoration(new DividerItemDecoration(this,DividerItemDecoration.VERTICAL));
         adapter=new musicRecycleAdapter(musicList_items);
+        RefreshMusicList();
         showList();
         tos=Toast.makeText(this,"",Toast.LENGTH_SHORT);
         moreInfo_pop=new moreMusicinfo(Main2Activity.this);
@@ -166,24 +167,30 @@ public class Main2Activity extends AppCompatActivity {
             }
             updataListView();
 
+
             /*for(musicList_Item mu:musicList_items){
-                uri=Uri.parse(mu.getUri());
+                String path=mu.getUri();
+                uri=Uri.parse(path);
+                System.out.println(uri.toString());
                 MediaMetadataRetriever mmr=new MediaMetadataRetriever();
-                mmr.setDataSource(this,uri);
+                mmr.setDataSource(path);
                 byte[] embedPic=mmr.getEmbeddedPicture();
-                Bitmap bitmap= BitmapFactory.decodeByteArray(embedPic,0,embedPic.length);
-                mu.setBitmap(bitmap);
+                Bitmap bitmap=null;
+                if(embedPic!=null){
+                    bitmap= BitmapFactory.decodeByteArray(embedPic,0,embedPic.length);
+                    mu.setBitmap(bitmap);
+                }
                 mmr.release();
             }
             updataListView();*/
 
-            /*new Thread(new Runnable() {
+            new Thread(new Runnable() {
                 @Override
                 public void run() {
                     updataMusicPic();
                     mHandler.sendEmptyMessage(0);
                 }
-            }).start();*/
+            }).start();
         }catch (Exception e){
             Log.d("Main2Activity",e.toString());
             tos.setText(e.toString());
@@ -200,19 +207,18 @@ public class Main2Activity extends AppCompatActivity {
     public void updataMusicPic(){
         try {
             for(musicList_Item mu:musicList_items){
-                uri=Uri.parse(mu.getUri());
-                if(!mu.getArtist().equals("无")){
-                    MediaMetadataRetriever mmr=new MediaMetadataRetriever();
-                    mmr.setDataSource(Main2Activity.this,uri);
-                    byte[] embedPic=mmr.getEmbeddedPicture();
-                    Bitmap bitmap= BitmapFactory.decodeByteArray(embedPic,0,embedPic.length);
+                String path=mu.getUri();
+                uri=Uri.parse(path);
+                System.out.println(uri.toString());
+                MediaMetadataRetriever mmr=new MediaMetadataRetriever();
+                mmr.setDataSource(path);
+                byte[] embedPic=mmr.getEmbeddedPicture();
+                Bitmap bitmap=null;
+                if(embedPic!=null){
+                    bitmap= BitmapFactory.decodeByteArray(embedPic,0,embedPic.length);
                     mu.setBitmap(bitmap);
-                    mmr.release();
-                }else{
-                    /*mu.setTitle(String.valueOf(uri.getLastPathSegment()));
-                    mu.setArtist("无");
-                    mu.setDuration(String.valueOf(0));*/
                 }
+                mmr.release();
             }
         }catch (Exception e){
             Log.d("Main2Activity",e.toString());
@@ -234,6 +240,30 @@ public class Main2Activity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+
+    private void RefreshMusicList(){
+        Uri uri=MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+        String[] ss={"MediaStore.Audio.Media.ARTIST"};
+        String[] projection = {"_data","_display_name","_size","mime_type","title","duration"};
+        Cursor cursor = getContentResolver().query(uri, projection, null, null, null);
+        cursor.moveToFirst();
+        do{
+            String path=cursor.getString(cursor.getColumnIndexOrThrow("_data"));
+            List<MusicList> findMusic=DataSupport.select("uri").where("uri=?",path).find(MusicList.class);
+            if(findMusic.isEmpty()){
+                MusicList musicList=new MusicList();
+                musicList.setUri(cursor.getString(cursor.getColumnIndexOrThrow("_data")));
+                musicList.setTitle(cursor.getString(cursor.getColumnIndexOrThrow("title")));
+                musicList.setDuration(cursor.getString(cursor.getColumnIndexOrThrow("duration")));
+                musicList.setSize(cursor.getString(cursor.getColumnIndexOrThrow("_size")));
+                musicList.setFileName(cursor.getString(cursor.getColumnIndexOrThrow("_display_name")));
+                musicList.setArtist("无");
+                musicList.save();
+            }
+        }while(cursor.moveToNext());
+        cursor.close();
     }
 
     private void getUriData(){

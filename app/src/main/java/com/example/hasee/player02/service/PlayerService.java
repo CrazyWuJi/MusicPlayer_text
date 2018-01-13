@@ -221,8 +221,11 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
                     musicName=uri.getLastPathSegment();
                 }
                 byte[] embedPic=mmr.getEmbeddedPicture();
-                musicPic= BitmapFactory.decodeByteArray(embedPic,0,embedPic.length);
-
+                if(embedPic==null){
+                    musicPic=null;
+                }else{
+                    musicPic= BitmapFactory.decodeByteArray(embedPic,0,embedPic.length);
+                }
                 //Toast.makeText(PlayerService.this,"Show Message"+uri.toString(),Toast.LENGTH_SHORT).show();
             }
         }catch (Exception e){
