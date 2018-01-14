@@ -48,7 +48,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 public class Main2Activity extends AppCompatActivity {
 
-    Toast tos;
+    public Toast tos;
     public Uri uri;
     public int i;
     public List<MusicList> musicLists=new ArrayList<>();
@@ -65,6 +65,7 @@ public class Main2Activity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main2);
+        tos=Toast.makeText(Main2Activity.this,"",Toast.LENGTH_SHORT);
         Toolbar toolbar=(Toolbar)findViewById(R.id.toolbar);
         toolbar.setTitle("音乐列表");
         setSupportActionBar(toolbar);
@@ -80,7 +81,6 @@ public class Main2Activity extends AppCompatActivity {
         adapter=new musicRecycleAdapter(musicList_items);
         //RefreshMusicList();
         showList();
-        tos=Toast.makeText(this,"",Toast.LENGTH_SHORT);
         moreInfo_pop=new moreMusicinfo(Main2Activity.this);
         addMusicbtn=new addMusiBbtn(Main2Activity.this);
         mHandler=new Handler(){
@@ -137,7 +137,6 @@ public class Main2Activity extends AppCompatActivity {
                     progressDialog.setCancelable(false);
                     progressDialog.show();
                     RefreshMusicList();
-                    showList();
                     progressDialog.dismiss();
                 }
             }
@@ -178,23 +177,40 @@ public class Main2Activity extends AppCompatActivity {
         adapter.notifyItemInserted(po);
     }
 
+    private void showTos(String string){
+        tos.setText(string);
+        tos.show();
+    }
+
     //显示歌曲列表。
-    protected void showList(){
+    private void showList(){
         try {
             musicLists.clear();
             musicList_items.clear();
             musicLists=DataSupport.findAll(MusicList.class);
-            for(MusicList music:musicLists){
-                musicList_Item musicList_item=new musicList_Item();
-                musicList_item.setArtist(music.getArtist());
-                musicList_item.setDuration(music.getDuration());
-                musicList_item.setTitle(music.getTitle());
-                musicList_item.setUri(music.getUri());
-                musicList_items.add(musicList_item);
+            System.out.println(musicLists.isEmpty());
+            System.out.println(musicLists.size());
+            if(musicLists.isEmpty()){
+                //Toast.makeText(Main2Activity.this,"歌曲列表为空",Toast.LENGTH_SHORT).show();
+                showTos("歌曲列表为空");
+            }else{
+                for(MusicList music:musicLists){
+                    musicList_Item musicList_item=new musicList_Item();
+                    musicList_item.setArtist(music.getArtist());
+                    musicList_item.setDuration(music.getDuration());
+                    musicList_item.setTitle(music.getTitle());
+                    musicList_item.setUri(music.getUri());
+                    musicList_items.add(musicList_item);
+                }
+                updataListView();
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        updataMusicPic();
+                        mHandler.sendEmptyMessage(0);
+                    }
+                }).start();
             }
-            updataListView();
-
-
             /*for(musicList_Item mu:musicList_items){
                 String path=mu.getUri();
                 uri=Uri.parse(path);
@@ -210,14 +226,6 @@ public class Main2Activity extends AppCompatActivity {
                 mmr.release();
             }
             updataListView();*/
-
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    updataMusicPic();
-                    mHandler.sendEmptyMessage(0);
-                }
-            }).start();
         }catch (Exception e){
             Log.d("Main2Activity",e.toString());
             tos.setText(e.toString());
@@ -311,6 +319,9 @@ public class Main2Activity extends AppCompatActivity {
             }
         }while(cursor.moveToNext());
         Toast.makeText(Main2Activity.this,"共添加"+i+"首音乐",Toast.LENGTH_SHORT).show();
+        if(i>0){
+            showList();
+        }
         cursor.close();
     }
 
