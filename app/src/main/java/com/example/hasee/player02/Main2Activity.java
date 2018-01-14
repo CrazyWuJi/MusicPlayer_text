@@ -1,5 +1,7 @@
 package com.example.hasee.player02;
 
+import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
@@ -7,7 +9,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.MediaStore;
@@ -21,6 +22,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -33,14 +35,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.hasee.player02.Adapter.musicList_Item;
+import com.example.hasee.player02.PopupWindow.addMusiBbtn;
 import com.example.hasee.player02.PopupWindow.moreMusicinfo;
 import com.example.hasee.player02.db.MusicList;
 
 import org.litepal.crud.DataSupport;
-import org.litepal.tablemanager.Connector;
 
-import java.io.File;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -58,6 +58,7 @@ public class Main2Activity extends AppCompatActivity {
     musicRecycleAdapter adapter;
     private Handler mHandler;
     private moreMusicinfo moreInfo_pop;
+    private addMusiBbtn addMusicbtn;
 
     //获取组件实例。
     @Override
@@ -77,10 +78,11 @@ public class Main2Activity extends AppCompatActivity {
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.addItemDecoration(new DividerItemDecoration(this,DividerItemDecoration.VERTICAL));
         adapter=new musicRecycleAdapter(musicList_items);
-        RefreshMusicList();
+        //RefreshMusicList();
         showList();
         tos=Toast.makeText(this,"",Toast.LENGTH_SHORT);
         moreInfo_pop=new moreMusicinfo(Main2Activity.this);
+        addMusicbtn=new addMusiBbtn(Main2Activity.this);
         mHandler=new Handler(){
             @Override
             public void handleMessage(Message msg){
@@ -105,16 +107,41 @@ public class Main2Activity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item){
         switch (item.getItemId()){
             case R.id.add:
-                Connector.getDatabase();
+                /*Connector.getDatabase();
                 Intent intent=new Intent(Intent.ACTION_GET_CONTENT);
                 intent.setType("audio/*");
-                startActivityForResult(intent,100);
+                startActivityForResult(intent,100);*/
+                showPopupWindowForRefresh();
                 break;
             case android.R.id.home:
                 finish();
                 break;
         }
         return true;
+    }
+
+    public void showPopupWindowForRefresh(){
+        addMusicbtn.setAnimationStyle(R.style.popwin_anim_style);
+        int windowWidth=addMusicbtn.getWidth();
+        int achorWidth=Main2Activity.this.getResources().getDisplayMetrics().widthPixels;
+        addMusicbtn.showAtLocation(LayoutInflater.from(Main2Activity.this).inflate(R.layout.activity_main2,null), Gravity.TOP,achorWidth-windowWidth,250);
+        ListView listView=addMusicbtn.getListView();
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                addMusicbtn.dismiss();
+                if(i==0){
+                    ProgressDialog progressDialog=new ProgressDialog(Main2Activity.this);
+                    progressDialog.setTitle("正在扫描音乐");
+                    progressDialog.setMessage("Scanning...");
+                    progressDialog.setCancelable(false);
+                    progressDialog.show();
+                    RefreshMusicList();
+                    showList();
+                    progressDialog.dismiss();
+                }
+            }
+        });
     }
 
     public void DeletMusicList(int ii){
@@ -265,6 +292,7 @@ public class Main2Activity extends AppCompatActivity {
         String[] projection = {"_data","_display_name","_size","mime_type","title","duration","artist"};
         Cursor cursor = getContentResolver().query(uri, projection, null, null, null);
         cursor.moveToFirst();
+        int i=0;
         do{
             String path=cursor.getString(cursor.getColumnIndexOrThrow("_data"));
             List<MusicList> findMusic=DataSupport.select("uri").where("uri=?",path).find(MusicList.class);
@@ -278,9 +306,11 @@ public class Main2Activity extends AppCompatActivity {
                     musicList.setFileName(cursor.getString(cursor.getColumnIndexOrThrow("_display_name")));
                     musicList.setArtist(cursor.getString(cursor.getColumnIndexOrThrow("artist")));
                     musicList.save();
+                    i++;
                 }
             }
         }while(cursor.moveToNext());
+        Toast.makeText(Main2Activity.this,"共添加"+i+"首音乐",Toast.LENGTH_SHORT).show();
         cursor.close();
     }
 

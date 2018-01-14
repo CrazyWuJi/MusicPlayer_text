@@ -5,8 +5,8 @@
     android:orientation="vertical">
 
     <ListView
-        android:id="@+id/moreInfo_list"
-        android:layout_width="120dp"
+        android:id="@+id/menu_list"
+        android:layout_width="150dp"
         android:layout_height="match_parent"
         android:cacheColorHint="#000000"
         android:listSelector="?android:attr/selectableItemBackground"

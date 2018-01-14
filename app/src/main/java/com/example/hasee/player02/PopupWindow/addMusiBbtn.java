@@ -1,8 +1,8 @@
 package com.example.hasee.player02.PopupWindow;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
+import android.support.v4.view.ViewPager;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,41 +18,46 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by hasee on 2018/1/11 0011.
+ * Created by hasee on 2018/1/13 0013.
  */
 
-public class moreMusicinfo extends PopupWindow{
+public class addMusiBbtn extends PopupWindow {
     private Context context;
     private View view;
     private ListView listView;
     private List<String> list;
+    private int width;
 
     public ListView getListView(){
         return listView;
     }
 
-    public moreMusicinfo(Context context){
-        this(context,ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT);
+    public int getWidth(){
+        return width;
     }
 
-    public moreMusicinfo(Context context,int width,int height){
+    public addMusiBbtn(Context context){
+        this(context, ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT);
+    }
+
+    public addMusiBbtn(Context context, int width, int height){
         this.context=context;
+        this.width=width;
         setWidth(width);
         setHeight(height);
         setFocusable(true);
         setTouchable(true);
         setOutsideTouchable(true);
         setBackgroundDrawable(new BitmapDrawable());
-        view= LayoutInflater.from(context).inflate(R.layout.moreinfo_popwindow,null);
+        view= LayoutInflater.from(context).inflate(R.layout.menu_list,null);
         setContentView(view);
         initData();
     }
 
     private void initData(){
-        listView=(ListView)view.findViewById(R.id.moreInfo_list);
+        listView=(ListView)view.findViewById(R.id.menu_list);
         list=new ArrayList<String>();
-        list.add("详细信息");
-        list.add("删除");
+        list.add("导入手机音乐");
         listView.setAdapter(new BaseAdapter() {
             @Override
             public int getCount() {
@@ -77,7 +82,7 @@ public class moreMusicinfo extends PopupWindow{
                     //textView.setTextColor(Color.rgb(255,255,255));
                     textView.setBackgroundColor(context.getResources().getColor(android.R.color.background_light));
                     textView.setBackground(context.getResources().getDrawable(R.drawable.item_selector));
-                    textView.setTextSize(20);
+                    textView.setTextSize(24);
                     textView.setGravity(Gravity.CENTER);
                     textView.setPadding(0,13,0,13);
                     textView.setSingleLine(true);
