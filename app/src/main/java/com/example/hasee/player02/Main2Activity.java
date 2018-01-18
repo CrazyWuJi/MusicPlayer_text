@@ -50,7 +50,6 @@ public class Main2Activity extends AppCompatActivity {
 
     public Toast tos;
     public Uri uri;
-    public int i;
     public List<MusicList> musicLists=new ArrayList<>();
     public List<musicList_Item> musicList_items=new ArrayList<>();
     RecyclerView recyclerView;
@@ -59,6 +58,7 @@ public class Main2Activity extends AppCompatActivity {
     private Handler mHandler;
     private moreMusicinfo moreInfo_pop;
     private addMusiBbtn addMusicbtn;
+    private List<Thread> updataMusicPicThread;
 
     //获取组件实例。
     @Override
@@ -88,7 +88,11 @@ public class Main2Activity extends AppCompatActivity {
             public void handleMessage(Message msg){
                 switch (msg.what){
                     case 0:
-                        updataListView();
+                        //adapter.notifyItemChanged(0);
+                        //updataListView();
+                        for(int i=0;i<musicList_items.size();i++){
+                            adapter.notifyItemChanged(i);
+                        }
                         break;
                     default:
                         break;
@@ -203,6 +207,17 @@ public class Main2Activity extends AppCompatActivity {
                     musicList_items.add(musicList_item);
                 }
                 updataListView();
+                /*musicList_Item musicList_item=musicList_items.get(5);
+                String path=musicList_item.getUri();
+                MediaMetadataRetriever mmr=new MediaMetadataRetriever();
+                mmr.setDataSource(path);
+                byte[] embedPic=mmr.getEmbeddedPicture();
+                Bitmap bitmap=null;
+                if(embedPic!=null){
+                    bitmap=BitmapFactory.decodeByteArray(embedPic,0,embedPic.length);
+                    musicList_item.setBitmap(bitmap);
+                    adapter.notifyItemChanged(5);
+                }*/
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
@@ -211,21 +226,6 @@ public class Main2Activity extends AppCompatActivity {
                     }
                 }).start();
             }
-            /*for(musicList_Item mu:musicList_items){
-                String path=mu.getUri();
-                uri=Uri.parse(path);
-                System.out.println(uri.toString());
-                MediaMetadataRetriever mmr=new MediaMetadataRetriever();
-                mmr.setDataSource(path);
-                byte[] embedPic=mmr.getEmbeddedPicture();
-                Bitmap bitmap=null;
-                if(embedPic!=null){
-                    bitmap= BitmapFactory.decodeByteArray(embedPic,0,embedPic.length);
-                    mu.setBitmap(bitmap);
-                }
-                mmr.release();
-            }
-            updataListView();*/
         }catch (Exception e){
             Log.d("Main2Activity",e.toString());
             tos.setText(e.toString());
@@ -236,6 +236,10 @@ public class Main2Activity extends AppCompatActivity {
     //更新歌曲列表。
     public void updataListView(){
         recyclerView.setAdapter(adapter);
+    }
+
+    public void notifyListChanged(int ii){
+        adapter.notifyItemChanged(ii);
     }
 
     //更新歌曲专辑图。
