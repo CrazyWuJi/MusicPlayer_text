@@ -322,9 +322,11 @@ public class Main2Activity extends AppCompatActivity {
                 }
             }
         }while(cursor.moveToNext());
-        Toast.makeText(Main2Activity.this,"共添加"+i+"首音乐",Toast.LENGTH_SHORT).show();
         if(i>0){
+            Toast.makeText(Main2Activity.this,"共添加"+i+"首音乐",Toast.LENGTH_SHORT).show();
             showList();
+        }else{
+            Toast.makeText(Main2Activity.this,"没有扫描到新的歌曲",Toast.LENGTH_SHORT).show();
         }
         cursor.close();
     }
