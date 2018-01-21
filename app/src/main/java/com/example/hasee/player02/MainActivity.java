@@ -21,6 +21,8 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
@@ -36,6 +38,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.hasee.player02.Adapter.musicLrcRecyclerViewAdapter;
 import com.example.hasee.player02.Fragments.LrcHandle;
 import com.example.hasee.player02.Fragments.MusicLyricFragment;
 import com.example.hasee.player02.Fragments.MusicPicFragment;
@@ -65,7 +68,10 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     ImageButton btnStart,btnNext,btnPre;
     CheckBox Looping;
     LrcHandle lrcHandle;
-    WordView mWordView;
+    RecyclerView lrcRecyclerView;
+    LinearLayoutManager layoutManager;
+    musicLrcRecyclerViewAdapter adapter;
+    //WordView mWordView;
 
     //首次启动活动时调用，用于获取各个组件实例与开启后台服务。
     @SuppressLint("SdCardPath")
@@ -160,6 +166,8 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         transaction.add(R.id.Main_Fragment,musicPicFragment);
         transaction.commit();
         isMusicPicFragment=true;
+
+
         Intent startService=new Intent(this,PlayerService.class);
         startService(startService);
         bindService(startService,connection,BIND_AUTO_CREATE);
@@ -208,8 +216,17 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
             playerBinder=(PlayerService.PlayBinder)iBinder;
             playerBinder.setListener_service(playerListener_service);
-            mWordView=musicLyricFragment.getview();
-            mWordView.upDataLrc(lrcHandle.getWords());
+            //mWordView=musicLyricFragment.getview();
+           // mWordView.upDataLrc(lrcHandle.getWords());
+
+            lrcRecyclerView=musicLyricFragment.getRecyclerView();
+            layoutManager=new LinearLayoutManager(MainActivity.this);
+            lrcRecyclerView.setLayoutManager(layoutManager);
+            adapter=new musicLrcRecyclerViewAdapter(lrcHandle.getWords(),MainActivity.this);
+            lrcRecyclerView.setAdapter(adapter);
+            //Toast.makeText(MainActivity.this,String.valueOf(lrcHandle.getWords().size()),Toast.LENGTH_SHORT).show();
+            switchFragment(musicPicFragment,musicLyricFragment);
+
             SharedPreferences sharedPreferences=getSharedPreferences("data",MODE_PRIVATE);
             int number=sharedPreferences.getInt("number",-1);
             int progress=sharedPreferences.getInt("progress",-1);
@@ -269,8 +286,11 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     //获取歌词方法。
     public void initLrcHanle_forall(String title){
         lrcHandle.readLRC(Environment.getExternalStorageDirectory()+"/Download/"+title+".lrc");
-        mWordView.upDataLrc(lrcHandle.getWords());
+        //Toast.makeText(MainActivity.this,lrcHandle.getWords().get(0),Toast.LENGTH_SHORT).show();
+        //mWordView.upDataLrc(lrcHandle.getWords());
         playerBinder.setmTimeList(lrcHandle.getTime());
+        adapter.setAdapeters(lrcHandle.getWords());
+        adapter.notifyDataSetChanged();
         //Toast.makeText(this,String.valueOf(lrcHandle.getWords().size())+"+"+String.valueOf(lrcHandle.getTime().size()),Toast.LENGTH_SHORT).show();
     }
 
@@ -321,10 +341,18 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
             return lrcHandle.getTime();
         }
 
+        int lastOnfucus=0;
+
         @Override
-        public WordView getWordView() {
-            return musicLyricFragment.getview();
+        public void setFocusedNumber(int Number) {
+            adapter.setFocusedNumber(Number);
+            adapter.po=Number;
+            adapter.la=lastOnfucus;
+            adapter.notifyDataSetChanged();
+            lastOnfucus=Number;
         }
+
+
     };
 
     //退出时保存当前播放歌曲与位置。

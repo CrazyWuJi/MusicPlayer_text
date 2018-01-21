@@ -1,6 +1,7 @@
 package com.example.hasee.player02.Listener;
 
 import android.graphics.Bitmap;
+import android.support.v7.widget.RecyclerView;
 
 import com.example.hasee.player02.Fragments.WordView;
 import com.example.hasee.player02.Fragments.interface_class;
@@ -18,6 +19,6 @@ public interface PlayerListener_Service{
     void setMusicPic(Bitmap bitmap);
     void setDuration(int Duration);
     void initBtnPlay();
+    void setFocusedNumber(int Number);
     List<Integer> getTimeList();
-    WordView getWordView();
 }

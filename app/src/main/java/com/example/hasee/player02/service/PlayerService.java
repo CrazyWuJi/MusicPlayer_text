@@ -48,7 +48,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
     private List<Integer> mTimeList;
     public Toast tos;
     public Bitmap musicPic;
-    public WordView mWordView;
+    //public WordView mWordView;
     public int mIndex=0;
     String musicName;
 
@@ -71,8 +71,9 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
                         getNotificationManager().notify(1,getNotification(musicName));
                     }
                 }else if(msg.what==200){
-                    mWordView.mIndex=mIndex;
-                    mWordView.invalidate();
+                    playerListener_service.setFocusedNumber(mIndex);
+                    //mWordView.mIndex=mIndex;
+                    //mWordView.invalidate();
                 }
             }
         };
@@ -329,7 +330,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
             PlayerService.this.playerListener_service=pp;
             PlayerService.this.mTimeList=pp.getTimeList();
             //Toast.makeText(PlayerService.this,String.valueOf(pp.getTimeList().size()),Toast.LENGTH_SHORT).show();
-            PlayerService.this.mWordView=pp.getWordView();
+            //PlayerService.this.mWordView=pp.getWordView();
         }
         public void setmTimeList(List<Integer> ii){
             PlayerService.this.mTimeList=ii;

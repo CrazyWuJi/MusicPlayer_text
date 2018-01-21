@@ -83,6 +83,7 @@ public class Main2Activity extends AppCompatActivity {
         showList();
         moreInfo_pop=new moreMusicinfo(Main2Activity.this);
         addMusicbtn=new addMusiBbtn(Main2Activity.this);
+        recyclerView.smoothScrollToPosition(musicList_items.size()-1);
         mHandler=new Handler(){
             @Override
             public void handleMessage(Message msg){
