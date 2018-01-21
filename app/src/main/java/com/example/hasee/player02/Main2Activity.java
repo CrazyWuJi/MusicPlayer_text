@@ -83,7 +83,6 @@ public class Main2Activity extends AppCompatActivity {
         showList();
         moreInfo_pop=new moreMusicinfo(Main2Activity.this);
         addMusicbtn=new addMusiBbtn(Main2Activity.this);
-        recyclerView.smoothScrollToPosition(musicList_items.size()-1);
         mHandler=new Handler(){
             @Override
             public void handleMessage(Message msg){
@@ -193,8 +192,6 @@ public class Main2Activity extends AppCompatActivity {
             musicLists.clear();
             musicList_items.clear();
             musicLists=DataSupport.findAll(MusicList.class);
-            System.out.println(musicLists.isEmpty());
-            System.out.println(musicLists.size());
             if(musicLists.isEmpty()){
                 //Toast.makeText(Main2Activity.this,"歌曲列表为空",Toast.LENGTH_SHORT).show();
                 showTos("歌曲列表为空");
