@@ -1,5 +1,6 @@
 package com.example.hasee.player02.Fragments;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -26,6 +27,22 @@ public class MusicPicFragment extends Fragment{
         this.view=view;
         return view;
     }
+
+    public void setPicClickListener(Context context, final OnClickListener mListener){
+        if(view!=null&&mListener!=null){
+            view.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    mListener.onClick();
+                }
+            });
+        }
+    }
+
+    public interface OnClickListener{
+        void onClick();
+    }
+
     public void changeMuiscpic(Bitmap bitmap){
         ImageView imageView=(ImageView)view.findViewById(R.id.MusicPicView);
         imageView.setImageBitmap(bitmap);

@@ -45,6 +45,7 @@ import com.example.hasee.player02.Fragments.MusicPicFragment;
 import com.example.hasee.player02.Fragments.WordView;
 import com.example.hasee.player02.Fragments.interface_class;
 import com.example.hasee.player02.Listener.PlayerListener_Service;
+import com.example.hasee.player02.Listener.RecyclerViewItemClickListener;
 import com.example.hasee.player02.db.MusicList;
 import com.example.hasee.player02.service.PlayerService;
 
@@ -57,7 +58,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     int duration;
     ImageButton showList;
     TextView Title_Main,musicProgress_text;
-    Boolean isMusicPicFragment=true,isSeekBarChanging=false,isplayed=false,isBind=false;
+    Boolean isSeekBarChanging=false,isplayed=false,isBind=false;
     FrameLayout frameLayout;
     ImageView musicPic;
     SeekBar musicProgress_seekbar;
@@ -97,22 +98,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                 startActivityForResult(intent,100);
             }
         });
-        //musicPic=(ImageView)findViewById(R.id.musicPic);
         frameLayout=(FrameLayout)findViewById(R.id.Main_Fragment);
-        frameLayout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if(isMusicPicFragment==true){
-                    switchFragment(musicPicFragment,musicLyricFragment);
-                    isMusicPicFragment=false;
-                }else if(isMusicPicFragment==false){
-                    switchFragment(musicLyricFragment,musicPicFragment);
-                    //musicPicFragment.changeMuiscpic(bitmap);
-                    //Toast.makeText(MainActivity.this,String.valueOf(bitmap.getByteCount()),Toast.LENGTH_SHORT).show();
-                    isMusicPicFragment=true;
-                }
-            }
-        });
         btnStart=(ImageButton) findViewById(R.id.btnStart);
         btnStart.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -165,8 +151,6 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         //transaction.commit();
         transaction.add(R.id.Main_Fragment,musicPicFragment);
         transaction.commit();
-        isMusicPicFragment=true;
-
 
         Intent startService=new Intent(this,PlayerService.class);
         startService(startService);
@@ -224,8 +208,24 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
             lrcRecyclerView.setLayoutManager(layoutManager);
             adapter=new musicLrcRecyclerViewAdapter(lrcHandle.getWords(),MainActivity.this);
             lrcRecyclerView.setAdapter(adapter);
+            lrcRecyclerView.addOnItemTouchListener(new RecyclerViewItemClickListener(MainActivity.this, new RecyclerViewItemClickListener.OnItemClickListener() {
+                @Override
+                public void onItemClick(View view, int position) {
+                    switchFragment(musicLyricFragment,musicPicFragment);
+                }
+
+                @Override
+                public void onLongClick(View view, int position) {
+
+                }
+            }));
+            musicPicFragment.setPicClickListener(MainActivity.this, new MusicPicFragment.OnClickListener() {
+                @Override
+                public void onClick() {
+                    switchFragment(musicPicFragment,musicLyricFragment);
+                }
+            });
             //Toast.makeText(MainActivity.this,String.valueOf(lrcHandle.getWords().size()),Toast.LENGTH_SHORT).show();
-            switchFragment(musicPicFragment,musicLyricFragment);
 
             SharedPreferences sharedPreferences=getSharedPreferences("data",MODE_PRIVATE);
             int number=sharedPreferences.getInt("number",-1);

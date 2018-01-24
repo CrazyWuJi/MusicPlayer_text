@@ -28,6 +28,7 @@ public class MusicLyricFragment extends Fragment{
         return view;
     }
 
+
     public RecyclerView getRecyclerView(){
         return (RecyclerView)view.findViewById(R.id.lrc_RecyclerView);
     }
