@@ -36,7 +36,14 @@ public class musicLrcRecyclerViewAdapter extends RecyclerView.Adapter<musicLrcRe
     }
 
     public void setFocusedNumber(int Number){
-        lrcItemForRecyclerViewAdapters.get(Number).setIsFocused(true);
+        if(la==-2){
+            lrcItemForRecyclerViewAdapters.get(Number).setIsFocused(true);
+            la=Number;
+        }else if(Number!=la){
+            lrcItemForRecyclerViewAdapters.get(la).setIsFocused(false);
+            lrcItemForRecyclerViewAdapters.get(Number).setIsFocused(true);
+            la=Number;
+        }
     }
 
     public void setAdapeters(List<String> list){
@@ -66,10 +73,11 @@ public class musicLrcRecyclerViewAdapter extends RecyclerView.Adapter<musicLrcRe
         }else {
             holder.textView.setTextColor(Color.rgb(115,115,115));
         }
-        if(position!=po){
+        /*if(position!=po){
             holder.textView.setTextColor(Color.rgb(115,115,115));
             lrcItemForRecyclerViewAdapters.get(position).setIsFocused(false);
-        }
+            po=position;
+        }*/
     }
 
     @Override

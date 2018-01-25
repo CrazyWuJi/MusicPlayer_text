@@ -46,6 +46,7 @@ import com.example.hasee.player02.Fragments.WordView;
 import com.example.hasee.player02.Fragments.interface_class;
 import com.example.hasee.player02.Listener.PlayerListener_Service;
 import com.example.hasee.player02.Listener.RecyclerViewItemClickListener;
+import com.example.hasee.player02.Listener.onRecyclerViewScrolledListener;
 import com.example.hasee.player02.db.MusicList;
 import com.example.hasee.player02.service.PlayerService;
 
@@ -55,10 +56,10 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBarChangeListener{
 
-    int duration;
+    int duration,mIndex=0,moveState=-1;
     ImageButton showList;
     TextView Title_Main,musicProgress_text;
-    Boolean isSeekBarChanging=false,isplayed=false,isBind=false;
+    Boolean isSeekBarChanging=false,isplayed=false,isBind=false,isRecyclerViewScrolling=false,move=false;
     FrameLayout frameLayout;
     ImageView musicPic;
     SeekBar musicProgress_seekbar;
@@ -157,6 +158,8 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         bindService(startService,connection,BIND_AUTO_CREATE);
     }
 
+
+
     //回调函数，用于获取歌曲列表返回的被选中的歌曲并播放，寻找歌词。
     @Override
     protected void onActivityResult(int reqCode,int resCode,Intent intent){
@@ -201,13 +204,44 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
             playerBinder=(PlayerService.PlayBinder)iBinder;
             playerBinder.setListener_service(playerListener_service);
             //mWordView=musicLyricFragment.getview();
-           // mWordView.upDataLrc(lrcHandle.getWords());
+            //mWordView.upDataLrc(lrcHandle.getWords());
 
             lrcRecyclerView=musicLyricFragment.getRecyclerView();
             layoutManager=new LinearLayoutManager(MainActivity.this);
             lrcRecyclerView.setLayoutManager(layoutManager);
             adapter=new musicLrcRecyclerViewAdapter(lrcHandle.getWords(),MainActivity.this);
             lrcRecyclerView.setAdapter(adapter);
+            lrcRecyclerView.setOnScrollListener(new onRecyclerViewScrolledListener(new onRecyclerViewScrolledListener.onScrolledListener() {
+                @Override
+                public void onScrolled(int state) {
+                    if(state==1||state==2){
+                        isRecyclerViewScrolling=true;
+                    }
+                    if(state==0){
+                        isRecyclerViewScrolling=false;
+                        if(move){
+                            move=false;
+                            if(moveState==2){
+                                moveState=-1;
+                                int n=mIndex-layoutManager.findFirstVisibleItemPosition();
+                                if(n>=0&&lrcRecyclerView.getChildCount()>=n){
+                                    int height=lrcRecyclerView.getHeight();
+                                    lrcRecyclerView.smoothScrollBy(0,(height-lrcRecyclerView.getChildAt(mIndex-layoutManager.findFirstVisibleItemPosition()).getHeight())/2);
+                                }
+                            }else if(moveState==0){
+                                moveState=-1;
+                                int height=lrcRecyclerView.getHeight();
+                                lrcRecyclerView.smoothScrollBy(0,-(height-lrcRecyclerView.getChildAt(mIndex-layoutManager.findFirstVisibleItemPosition()).getHeight())/2);
+                            }
+                        }
+                    }
+                }
+
+                @Override
+                public void move(int dx,int dy) {
+
+                }
+            }));
             lrcRecyclerView.addOnItemTouchListener(new RecyclerViewItemClickListener(MainActivity.this, new RecyclerViewItemClickListener.OnItemClickListener() {
                 @Override
                 public void onItemClick(View view, int position) {
@@ -225,12 +259,10 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                     switchFragment(musicPicFragment,musicLyricFragment);
                 }
             });
-            //Toast.makeText(MainActivity.this,String.valueOf(lrcHandle.getWords().size()),Toast.LENGTH_SHORT).show();
 
             SharedPreferences sharedPreferences=getSharedPreferences("data",MODE_PRIVATE);
             int number=sharedPreferences.getInt("number",-1);
             int progress=sharedPreferences.getInt("progress",-1);
-            //Toast.makeText(MainActivity.this,String.valueOf(progress)+"  "+String.valueOf(number),Toast.LENGTH_SHORT).show();
             if(number!=-1){
                 playerBinder.setDataNumber(number,MainActivity.this);
                 if(progress!=-1){
@@ -309,6 +341,8 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         public void setTitle(String title) {
             isplayed=true;
             Title_Main.setText(String.valueOf(title));
+            adapter.la=-2;
+            lastOnfucus=-2;
             initLrcHanle_forall(title);
         }
 
@@ -341,15 +375,69 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
             return lrcHandle.getTime();
         }
 
-        int lastOnfucus=0;
+        int lastOnfucus=-2;
 
         @Override
         public void setFocusedNumber(int Number) {
             adapter.setFocusedNumber(Number);
-            adapter.po=Number;
-            adapter.la=lastOnfucus;
-            adapter.notifyDataSetChanged();
-            lastOnfucus=Number;
+            //adapter.po=Number;
+            //adapter.la=lastOnfucus;
+            if(lastOnfucus==-2){
+                adapter.notifyItemChanged(Number);
+                if(!isRecyclerViewScrolling){
+                    int firstItem=layoutManager.findFirstVisibleItemPosition();
+                    int lastItem=layoutManager.findLastVisibleItemPosition();
+                    lrcRecyclerView.smoothScrollToPosition(Number);
+                    mIndex=Number;
+                    if(Number>=lastItem){
+                        move=true;
+                        moveState=2;
+                    }else if(Number<=firstItem){
+                        move=true;
+                        moveState=0;
+                    }else if(Number>firstItem&&Number<lastItem){
+                        int height=lrcRecyclerView.getHeight();
+                        int n=mIndex-layoutManager.findFirstVisibleItemPosition();
+                        if(n>=0&&lrcRecyclerView.getChildCount()>=n){
+                            int top=lrcRecyclerView.getChildAt(n).getTop()+(lrcRecyclerView.getChildAt(mIndex-layoutManager.findFirstVisibleItemPosition()).getHeight())/2;
+                            if(top<height/2){
+                                lrcRecyclerView.smoothScrollBy(0,-(height/2-top));
+                            }else if(top>height/2){
+                                lrcRecyclerView.smoothScrollBy(0,top-height/2);
+                            }
+                        }
+                    }
+                }
+                lastOnfucus=Number;
+            }else if(Number!=lastOnfucus){
+                adapter.notifyItemChanged(Number);
+                adapter.notifyItemChanged(lastOnfucus);
+                if(!isRecyclerViewScrolling){
+                    int firstItem=layoutManager.findFirstVisibleItemPosition();
+                    int lastItem=layoutManager.findLastVisibleItemPosition();
+                    lrcRecyclerView.smoothScrollToPosition(Number);
+                    mIndex=Number;
+                    if(Number>=lastItem){
+                        move=true;
+                        moveState=2;
+                    }else if(Number<=firstItem){
+                        move=true;
+                        moveState=0;
+                    }else if(Number>firstItem&&Number<lastItem){
+                        int height=lrcRecyclerView.getHeight();
+                        int n=mIndex-layoutManager.findFirstVisibleItemPosition();
+                        if(n>=0&&lrcRecyclerView.getChildCount()>=n){
+                            int top=lrcRecyclerView.getChildAt(n).getTop()+(lrcRecyclerView.getChildAt(mIndex-layoutManager.findFirstVisibleItemPosition()).getHeight())/2;
+                            if(top<height/2){
+                                lrcRecyclerView.smoothScrollBy(0,-(height/2-top));
+                            }else if(top>height/2){
+                                lrcRecyclerView.smoothScrollBy(0,top-height/2);
+                            }
+                        }
+                    }
+                }
+                lastOnfucus=Number;
+            }
         }
 
 
