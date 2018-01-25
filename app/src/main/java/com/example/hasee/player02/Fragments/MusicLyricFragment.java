@@ -7,6 +7,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -28,6 +29,9 @@ public class MusicLyricFragment extends Fragment{
         return view;
     }
 
+    public SeekBar getVolumSeekBar(){
+        return (SeekBar)view.findViewById(R.id.VolumSeekBar);
+    }
 
     public RecyclerView getRecyclerView(){
         return (RecyclerView)view.findViewById(R.id.lrc_RecyclerView);

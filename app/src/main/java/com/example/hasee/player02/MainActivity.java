@@ -5,12 +5,15 @@ import android.annotation.SuppressLint;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.AudioManager;
 import android.media.Image;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
@@ -25,6 +28,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
@@ -39,6 +43,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.hasee.player02.Adapter.musicLrcRecyclerViewAdapter;
+import com.example.hasee.player02.BroadcastReceiver.VolumReceiver;
 import com.example.hasee.player02.Fragments.LrcHandle;
 import com.example.hasee.player02.Fragments.MusicLyricFragment;
 import com.example.hasee.player02.Fragments.MusicPicFragment;
@@ -53,16 +58,17 @@ import com.example.hasee.player02.service.PlayerService;
 import org.litepal.crud.DataSupport;
 
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBarChangeListener{
 
     int duration,mIndex=0,moveState=-1;
     ImageButton showList;
     TextView Title_Main,musicProgress_text;
-    Boolean isSeekBarChanging=false,isplayed=false,isBind=false,isRecyclerViewScrolling=false,move=false;
+    Boolean isSeekBarChanging=false,isplayed=false,isBind=false,isRecyclerViewScrolling=false,move=false,isFinish=false,hasTimer=false;
     FrameLayout frameLayout;
-    ImageView musicPic;
-    SeekBar musicProgress_seekbar;
+    SeekBar musicProgress_seekbar,volumSeekBar;
     MusicPicFragment musicPicFragment;
     MusicLyricFragment musicLyricFragment;
     PlayerService.PlayBinder playerBinder;
@@ -73,6 +79,9 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     RecyclerView lrcRecyclerView;
     LinearLayoutManager layoutManager;
     musicLrcRecyclerViewAdapter adapter;
+    AudioManager am;
+    VolumReceiver volumReceiver;
+    Toast tos;
     //WordView mWordView;
 
     //首次启动活动时调用，用于获取各个组件实例与开启后台服务。
@@ -85,8 +94,23 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         if(ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE)!= PackageManager.PERMISSION_GRANTED){
             ActivityCompat.requestPermissions(MainActivity.this,new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},1);
         }
+        tos=Toast.makeText(MainActivity.this,"",Toast.LENGTH_SHORT);
+        am=(AudioManager)getSystemService(Context.AUDIO_SERVICE);
         musicPicFragment=new MusicPicFragment();
         musicLyricFragment=new MusicLyricFragment();
+        volumReceiver=new VolumReceiver(new VolumReceiver.Receiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if(intent.getAction().equals("android.media.VOLUME_CHANGED_ACTION")){
+                    if(volumSeekBar!=null){
+                        volumSeekBar.setProgress(am.getStreamVolume(AudioManager.STREAM_MUSIC));
+                    }
+                }
+            }
+        });
+        IntentFilter filter=new IntentFilter();
+        filter.addAction("android.media.VOLUME_CHANGED_ACTION");
+        MainActivity.this.registerReceiver(volumReceiver,filter);
         Title_Main=(TextView)findViewById(R.id.title_main);
         musicProgress_seekbar=(SeekBar)findViewById(R.id.musicProgress_seekbar);
         musicProgress_seekbar.setOnSeekBarChangeListener(this);
@@ -205,6 +229,29 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
             playerBinder.setListener_service(playerListener_service);
             //mWordView=musicLyricFragment.getview();
             //mWordView.upDataLrc(lrcHandle.getWords());
+
+            volumSeekBar=musicLyricFragment.getVolumSeekBar();
+            volumSeekBar.setMax(am.getStreamMaxVolume(AudioManager.STREAM_MUSIC));
+            volumSeekBar.setProgress(am.getStreamVolume(AudioManager.STREAM_MUSIC));
+            volumSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                    if(b){
+                        am.setStreamVolume(AudioManager.STREAM_MUSIC,i,0);
+                        volumSeekBar.setProgress(am.getStreamVolume(AudioManager.STREAM_MUSIC));
+                    }
+                }
+
+                @Override
+                public void onStartTrackingTouch(SeekBar seekBar) {
+
+                }
+
+                @Override
+                public void onStopTrackingTouch(SeekBar seekBar) {
+
+                }
+            });
 
             lrcRecyclerView=musicLyricFragment.getRecyclerView();
             layoutManager=new LinearLayoutManager(MainActivity.this);
@@ -454,6 +501,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
             playerBinder.stop();
         }
         unbindService(connection);
+        unregisterReceiver(volumReceiver);
         super.onDestroy();
     }
 
@@ -473,6 +521,50 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         if(isBind){
             playerBinder.setIsPaused(false);
         }
+    }
+
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if(event.getKeyCode()==KeyEvent.KEYCODE_VOLUME_UP){
+            am.adjustStreamVolume(AudioManager.STREAM_MUSIC,AudioManager.ADJUST_RAISE,0);
+            return true;
+        }else if(event.getKeyCode()== KeyEvent.KEYCODE_VOLUME_DOWN) {
+            am.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_LOWER, 0);
+            return true;
+        }
+        return super.dispatchKeyEvent(event);
+    }
+
+    public void Exit(){
+        if(isFinish){
+            finish();
+        }else{
+            if(!isFinish){
+                tos.setText("再按一次返回键退出");
+                tos.show();
+                Timer timer=new Timer();
+                timer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        isFinish=false;
+                    }
+                },2000);
+            }
+            isFinish=true;
+        }
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if(keyCode == KeyEvent.KEYCODE_BACK) { //监控/拦截/屏蔽返回键
+            Exit();
+            return true;
+        } else if(keyCode == KeyEvent.KEYCODE_MENU) {
+            //监控/拦截菜单键
+        } else if(keyCode == KeyEvent.KEYCODE_HOME) {
+            //由于Home键为系统键，此处不能捕获，需要重写onAttachedToWindow()
+        }
+        return super.onKeyDown(keyCode, event);
     }
 
     //用于Android6.0以上系统获取运行时权限。
