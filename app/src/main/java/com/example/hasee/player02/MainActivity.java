@@ -30,6 +30,7 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
@@ -64,9 +65,8 @@ import java.util.TimerTask;
 public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBarChangeListener{
 
     int duration,mIndex=0,moveState=-1;
-    ImageButton showList;
-    TextView Title_Main,musicProgress_text;
-    Boolean isSeekBarChanging=false,isplayed=false,isBind=false,isRecyclerViewScrolling=false,move=false,isFinish=false,hasTimer=false;
+    TextView musicProgress_text,toolbar_title;
+    Boolean isSeekBarChanging=false,isplayed=false,isBind=false,isRecyclerViewScrolling=false,move=false,isFinish=false;
     FrameLayout frameLayout;
     SeekBar musicProgress_seekbar,volumSeekBar;
     MusicPicFragment musicPicFragment;
@@ -91,6 +91,10 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Toolbar toolbar=(Toolbar)findViewById(R.id.toolbar_main);
+        toolbar.setTitle("");
+        setSupportActionBar(toolbar);
+        toolbar_title=(TextView)findViewById(R.id.toolbar_main_title);
         if(ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE)!= PackageManager.PERMISSION_GRANTED){
             ActivityCompat.requestPermissions(MainActivity.this,new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},1);
         }
@@ -111,18 +115,9 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         IntentFilter filter=new IntentFilter();
         filter.addAction("android.media.VOLUME_CHANGED_ACTION");
         MainActivity.this.registerReceiver(volumReceiver,filter);
-        Title_Main=(TextView)findViewById(R.id.title_main);
         musicProgress_seekbar=(SeekBar)findViewById(R.id.musicProgress_seekbar);
         musicProgress_seekbar.setOnSeekBarChangeListener(this);
         musicProgress_text=(TextView)findViewById(R.id.musicProgress_text);
-        showList=(ImageButton)findViewById(R.id.showList);
-        showList.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent=new Intent(MainActivity.this,Main2Activity.class);
-                startActivityForResult(intent,100);
-            }
-        });
         frameLayout=(FrameLayout)findViewById(R.id.Main_Fragment);
         btnStart=(ImageButton) findViewById(R.id.btnStart);
         btnStart.setOnClickListener(new View.OnClickListener() {
@@ -182,7 +177,22 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         bindService(startService,connection,BIND_AUTO_CREATE);
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu){
+        getMenuInflater().inflate(R.menu.toolbar_main,menu);
+        return true;
+    }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem Item){
+        switch (Item.getItemId()){
+            case R.id.Main2Activity:
+                Intent intent=new Intent(MainActivity.this,Main2Activity.class);
+                startActivityForResult(intent,100);
+                break;
+        }
+        return true;
+    }
 
     //回调函数，用于获取歌曲列表返回的被选中的歌曲并播放，寻找歌词。
     @Override
@@ -205,8 +215,6 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                         }else{
                             musicPicFragment.changesMusicPicByDrawable(this.getResources().getDrawable(R.mipmap.logo));
                         }
-                        String titleString=selectedMusic.getTitle();
-                        Title_Main.setText(titleString);
                         playerBinder.setDataNumber(SelectedNumber,MainActivity.this);
                         //initLrcHanle_forall(mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE));
                         mmr.release();
@@ -278,7 +286,10 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                             }else if(moveState==0){
                                 moveState=-1;
                                 int height=lrcRecyclerView.getHeight();
-                                lrcRecyclerView.smoothScrollBy(0,-(height-lrcRecyclerView.getChildAt(mIndex-layoutManager.findFirstVisibleItemPosition()).getHeight())/2);
+                                int n=mIndex-layoutManager.findFirstVisibleItemPosition();
+                                if(n>=0&&n<=lrcRecyclerView.getChildCount()){
+                                    lrcRecyclerView.smoothScrollBy(0,-(height-lrcRecyclerView.getChildAt(mIndex-layoutManager.findFirstVisibleItemPosition()).getHeight())/2);
+                                }
                             }
                         }
                     }
@@ -387,7 +398,9 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         @Override
         public void setTitle(String title) {
             isplayed=true;
-            Title_Main.setText(String.valueOf(title));
+            if(toolbar_title!=null){
+                toolbar_title.setText(String.valueOf(title));
+            }
             adapter.la=-2;
             lastOnfucus=-2;
             initLrcHanle_forall(title);
